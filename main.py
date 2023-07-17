@@ -617,6 +617,6 @@ else:
         f.close()
         
       send_msg_on_telegram({'type': 'text','val': "↑↑↑Top" + str(spec['numTotal']) + " for the last " + str(spec['forLastXhours']) + "h. " }, {'dest': 'OpenNewsAggregatorEN'}) #+ str(datetime.now(timezone.utc)) + "(UTC)."
-      print("git test")
+      print("git test22222")
       
       time.sleep((3600 * 3))
