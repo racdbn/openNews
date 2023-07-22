@@ -588,7 +588,7 @@ else:
         #sys.stdout = original_stdout
         f.close()
       
-      send_msg_on_telegram({'type': 'text','val': "↑↑↑Топ" + str(spec['numTotal']) + " за прошедшие " + str(spec['forLastXhours']) + "ч. " }, {'dest': 'OpenNewsAggregatorRUUA'}) #+ str(datetime.now(timezone.utc)) + "(UTC)."
+      send_msg_on_telegram({'type': 'text','val': "↑↑↑Топ" + str(spec['numTotal'])  + " новостей телеграма по просмотрам за прошедшие " + str(spec['forLastXhours']) + "ч. " }, {'dest': 'OpenNewsAggregatorRUUA'}) #+ str(datetime.now(timezone.utc)) + "(UTC)."
         
       # res =  grabTheTop('EN',25,"repo")
       #spec = {'type': 'repo', 'source': 'SourceENG2.json', 'numPerPost': 5, 'numTotal': 25, 'censorLinks': True, 'maxChar': 280}
@@ -616,7 +616,7 @@ else:
         #sys.stdout = original_stdout
         f.close()
         
-      send_msg_on_telegram({'type': 'text','val': "↑↑↑Top" + str(spec['numTotal']) + " for the last " + str(spec['forLastXhours']) + "h. " }, {'dest': 'OpenNewsAggregatorEN'}) #+ str(datetime.now(timezone.utc)) + "(UTC)."
+      send_msg_on_telegram({'type': 'text','val': "↑↑↑Top" + str(spec['numTotal']) + " telegram news posts by views for the last " + str(spec['forLastXhours']) + "h. " }, {'dest': 'OpenNewsAggregatorEN'}) #+ str(datetime.now(timezone.utc)) + "(UTC)."
       print("git test22222")
       
       time.sleep((3600 * 3))
