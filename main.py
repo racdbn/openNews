@@ -21,18 +21,18 @@ from telethon.tl.types import (
 import requests 
 import math
 
-import secrets
+import RacdbnSecrets
 
 import sys
 
 import boto3
  
 
-API_KEY = secrets.API_KEY
-App_api_id = secrets.App_api_id
-App_api_hash = secrets.App_api_hash
-Telegram_username = secrets.Telegram_username
-phone = secrets.phone
+API_KEY = RacdbnSecrets.API_KEY
+App_api_id = RacdbnSecrets.App_api_id
+App_api_hash = RacdbnSecrets.App_api_hash
+Telegram_username = RacdbnSecrets.Telegram_username
+phone = RacdbnSecrets.phone
 
 print()  
 
@@ -583,7 +583,7 @@ else:
       with open('logs\\' + log['saveFile'], 'w') as f:
         #sys.stdout = f
         prettylog = json.dumps(log, indent=4)
-        print(prettylog, f)
+        #print(prettylog, f)
         f.write(prettylog)
         #sys.stdout = original_stdout
         f.close()

@@ -1,6 +1,7 @@
-secrets.py
+RacdbnSecrets.py
 /logs 
 /__pycache__
+/Sessions
 SourceENG.json
 test.py
 test2.py
