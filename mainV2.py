@@ -731,7 +731,7 @@ else:
         print("i = " + str(len(res) - i - 1))
         print(res[len(res) - i - 1])
         #send_msg_on_telegram(res[len(res) - i - 1], {'dest': 'OpenNewsAggregatorRUUA', 'trans2': 'ru'})
-        send_msg_on_telegram(res[len(res) - i - 1], {'dest': 'racdbn', 'trans2': 'ru'})
+        send_msg_on_telegram(res[len(res) - i - 1], {'dest': 'OpenNewsAggregatorRUUA', 'trans2': 'ru'})
         add_msg_to_log(res[len(res) - i - 1], log)
       
       with open('logs\\' + log['saveFile'], 'w') as f:
