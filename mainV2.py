@@ -145,7 +145,7 @@ def getPrevEmb(spec):
                             pass
                                     
                 vec = SWass.Text2SimpleVec(postText)
-                if vec != None
+                if vec != None:
                     res.append(vec)
     return res 
 
