@@ -289,6 +289,18 @@ def Text2WVecs(Text, wordsCounts, navec):
 #    
 #    return uniMeas
     
+def Text2SimpleVecPP(Text):  
+    nuMeasure = Text2WVecs(Text, {'и': 100}, navec)
+    
+    if len(nuMeasure) == 0:
+        return None
+    else:
+        res['vec'] = Text2SimpleVec(Text)
+        res['num'] = len(nuMeasure)
+    return res    
+        
+   
+  
 def Text2SimpleVec(Text):
     nuMeasure = Text2WVecs(Text, {'и': 100}, navec)
     
