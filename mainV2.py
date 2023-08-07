@@ -446,11 +446,11 @@ def grabTheTop(spec, ChInfoList):
                         getClosestUpd(MTextEmb, prevEmb, closest)
                         Save[i][str(j)]['closest'] = closest
                     else:
-                        MTextEmb = SWass.Text2SimpleVec(MTextPT)
+                        MTextEmb = SWass.Text2SimpleVecPP(MTextPT)
                         if MTextEmb != None:
                             Save[i][str(j)] = {}
                             Save[i][str(j)]['emb'] = MTextEmb
-                            closest = getClosest(MTextEmb, prevEmb)
+                            closest = getClosest(MTextEmb['vec'], prevEmb)
                             Save[i][str(j)]['closest'] = closest
                     if MTextEmb != None:
                     
@@ -459,7 +459,7 @@ def grabTheTop(spec, ChInfoList):
                         Secs = (StartTime - msgtime).total_seconds() 
                     
                     
-                        curPoints = (closest['Dist2'] * MsgInCurChannel.to_dict().get("views")) / pow(Secs + (5 * 60), 0.7)
+                        curPoints = (closest['Dist2'] * MsgInCurChannel.to_dict().get("views")) * pow(min(5, MTextEmb['num']), 0.5) / pow(Secs + (5 * 60), 0.7)
                     else: 
                         curPoints = -1000000
                   else:
@@ -473,7 +473,7 @@ def grabTheTop(spec, ChInfoList):
                      candidate['msgIdTop'] = msgId
                      candidate['MText'] = MText
                      if(spec['noDuplicates'] == 'v2'):
-                        candidate['vec'] = MTextEmb
+                        candidate['vec'] = MTextEmb['vec']
            
           top.append(candidate['top'])     
           entitiesTop.append(candidate['entitiesTop'])
