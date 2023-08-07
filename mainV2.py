@@ -137,7 +137,7 @@ def getPrevEmb(spec):
                     if(len(postText) > 0):
                         try:
                             sourceT = postText
-                            clientBoto = boto3.client('translate', region_name="us-east-1")
+                            clientBoto = boto3.client('translate', region_name="ap-southeast-1")
                             result = clientBoto.translate_text(Text=sourceT, SourceLanguageCode="auto", TargetLanguageCode = spec['trans2'])        
                             if result['SourceLanguageCode'] != type['trans2']:
                                 postText = result['TranslatedText']
@@ -412,7 +412,7 @@ def grabTheTop(spec, ChInfoList):
                         sourceT = MTextPT
                         if(len(sourceT) > 0):
                             try:
-                                clientBoto = boto3.client('translate', region_name="us-east-1")
+                                clientBoto = boto3.client('translate', region_name="ap-southeast-1")
                                 result = clientBoto.translate_text(Text=sourceT, SourceLanguageCode="auto", TargetLanguageCode = spec['trans2'])        
                                 if result['SourceLanguageCode'] != type['trans2']:
                                     MTextPT = result['TranslatedText']
@@ -641,7 +641,7 @@ def send_msg_on_telegram(msg, type):
             if(len(msg['val']['text']) > 0):
                 sourceT = msg['val']['text']
                 try:
-                    clientBoto = boto3.client('translate', region_name="us-east-1")
+                    clientBoto = boto3.client('translate', region_name="ap-southeast-1")
                     result = clientBoto.translate_text(Text=sourceT, SourceLanguageCode="auto", TargetLanguageCode = type['trans2'])        
                     if result['SourceLanguageCode'] == type['trans2']:
                         print('Already ' + type['trans2'])    
