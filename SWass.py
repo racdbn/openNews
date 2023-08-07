@@ -292,6 +292,9 @@ def Text2WVecs(Text, wordsCounts, navec):
 def Text2SimpleVecPP(Text):  
     nuMeasure = Text2WVecs(Text, {'и': 100}, navec)
     
+    res = {}
+    
+    
     if len(nuMeasure) == 0:
         return None
     else:
