@@ -340,8 +340,32 @@ def grabChInfo(spec):
     res = client.loop.run_until_complete(main(phone))
   return res 
 
+def loadPrevCl(spec, cl):
+    directory = os.fsencode('logs')
+    names = []
+    for file in os.listdir(directory):
+         filename = os.fsdecode(file)
+         if filename.endswith(".txt"):
+             if filename.startswith("CLS-" + spec['source'].rsplit(".",1)[0] + "-"):
+                 print(filename)
+                 names.append(filename)
+             continue
+         else:
+             continue
+             
+    names = sorted(names, key=str.upper) 
+    
+    if len(names) > 0:
+        with open('logs\\' + names[len(names) - 1], 'r') as myfile:
+            data = myfile.read()         
+            #print(data)
+            #print(names[len(names) - i])
+            #print('e data')
+            cl = json.loads(data)
+ 
 
-def grabTheTop(spec, ChInfoList):
+
+def grabTheTop(spec, ChInfoList, cl):
       res2 = []
 
       top = []
@@ -549,6 +573,9 @@ def grabTheTop(spec, ChInfoList):
           
       EndTime = datetime.now(timezone.utc)
       print("EndTime - StartTime = " + str(EndTime - StartTime))
+      
+      LoadPrevCl(cl)
+      
           
       return res2  
 
@@ -719,14 +746,21 @@ else:
       #spec = {'type': 'text', 'source': 'SourceRU.json', 'numPerPost': 1, 'numTotal': 5, 'censorLinks': False, 'maxChar': 100000}
       
       spec = {'type': 'repo', 'source': 'SourceRU.json', 'numTotal': 1, 'noDuplicatesNum': (10 * 5), 'noDuplicatesTresh': 0.7, 'forLastXhours': 6, 'noChannelDuplicatesNum': (7 * 5), 'noDuplicates' : 'v2', 'lastNewsCap': 5, 'trans2': 'ru'}
-      ChInfoList =  grabChInfo(spec)
-      res =  grabTheTop(spec, ChInfoList)
+
       #res = []
       
       now = datetime.now()
       FN = spec['source'].rsplit(".",1)[0] + '-[' + str(now).replace(".", "p").replace(":", "d") + '].log' 
       log = {'saveFile': FN}
-      log['blocks'] = []
+      log['blocks'] = []      
+      
+      clFN = "CLS-" + spec['source'].rsplit(".",1)[0] + '-[' + str(now).replace(".", "p").replace(":", "d") + '].txt' 
+      cl = {'saveFile': clFN}
+      cl['clusters'] = []
+      
+      ChInfoList = grabChInfo(spec)
+      res =  grabTheTop(spec, ChInfoList, cl)
+      
       for i in range(0, len(res)):
         print("t4") 
         print("i = " + str(len(res) - i - 1))
@@ -737,6 +771,11 @@ else:
       
       with open('logs\\' + log['saveFile'], 'w') as f:
         prettylog = json.dumps(log, indent=4)
+        f.write(prettylog)
+        f.close()      
+        
+      with open('logs\\' + cl['saveFile'], 'w') as f:
+        prettylog = json.dumps(cl, indent=4)
         f.write(prettylog)
         f.close()
       
