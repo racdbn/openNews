@@ -575,13 +575,13 @@ def grabTheTop(spec, ChInfoList, cl):
       print("EndTime - StartTime = " + str(EndTime - StartTime))
       
       LoadPrevCl(cl)
-      for i in range(len(res2)):
-        cl['clusters'].append({})
-        LLL =  len(cl['clusters'])
-        cl['clusters'][LLL - 1]['head'] = {}
-        cl['clusters'][LLL - 1]['head']['emb'] = 
-        
-        cl['clusters'][LLL - 1]['elems'] = []
+      #for i in range(len(res2)):
+      #  cl['clusters'].append({})
+      #  LLL =  len(cl['clusters'])
+      #  cl['clusters'][LLL - 1]['head'] = {}
+      #  cl['clusters'][LLL - 1]['head']['emb'] = 
+      #  
+      #  cl['clusters'][LLL - 1]['elems'] = []
         
           
       return res2  
