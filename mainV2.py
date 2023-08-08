@@ -340,7 +340,7 @@ def grabChInfo(spec):
     res = client.loop.run_until_complete(main(phone))
   return res 
 
-def loadPrevCl(spec, cl):
+def LoadPrevCl(spec, cl):
     directory = os.fsencode('logs')
     names = []
     for file in os.listdir(directory):
@@ -575,7 +575,14 @@ def grabTheTop(spec, ChInfoList, cl):
       print("EndTime - StartTime = " + str(EndTime - StartTime))
       
       LoadPrevCl(cl)
-      
+      for i in range(len(res2)):
+        cl['clusters'].append({})
+        LLL =  len(cl['clusters'])
+        cl['clusters'][LLL - 1]['head'] = {}
+        cl['clusters'][LLL - 1]['head']['emb'] = 
+        
+        cl['clusters'][LLL - 1]['elems'] = []
+        
           
       return res2  
 
