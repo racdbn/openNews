@@ -574,7 +574,7 @@ def grabTheTop(spec, ChInfoList, cl):
       EndTime = datetime.now(timezone.utc)
       print("EndTime - StartTime = " + str(EndTime - StartTime))
       
-      LoadPrevCl(cl)
+      LoadPrevCl(spec, cl)
       #for i in range(len(res2)):
       #  cl['clusters'].append({})
       #  LLL =  len(cl['clusters'])
