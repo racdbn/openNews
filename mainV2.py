@@ -361,9 +361,21 @@ def LoadPrevCl(spec, cl):
             #print(data)
             #print(names[len(names) - i])
             #print('e data')
-            cl = json.loads(data)
+            cl['clusters'] = json.loads(data)['clusters']
  
 
+
+def getMsgFromCl(chatId, messageId, cl):
+    for q in range(len(cl['clusters'])):
+        if cl['clusters'][q]['head']['from_chat_id'] == chatId:
+             if cl['clusters'][q]['head']['message_id'] == messageId:                
+                return cl['clusters'][q]['head']
+        for j in range(len(cl['clusters'][q]['elems'])):
+            if cl['clusters'][q]['elems'][j]['from_chat_id'] == chatId:
+                if cl['clusters'][q]['elems'][j]['message_id'] == messageId:
+                     return cl['clusters'][q]['elems'][j]
+    
+    return None 
 
 def grabTheTop(spec, ChInfoList, cl):
       res2 = []
@@ -372,6 +384,8 @@ def grabTheTop(spec, ChInfoList, cl):
       entitiesTop = []
       textMsgTop = []
       msgIdTop = []
+      EmbsTop = []
+      EmbsNumTop = []
       
       prevIn = []
       prevInChan = []
@@ -385,7 +399,7 @@ def grabTheTop(spec, ChInfoList, cl):
       
       StartTime = datetime.now(timezone.utc)
            
-      
+      LoadPrevCl(spec, cl)
       
       Save = []
       TextSave = []
@@ -459,23 +473,44 @@ def grabTheTop(spec, ChInfoList, cl):
                 print("MsgInCurChannel.to_dict().get(views) = " + str(MsgInCurChannel.to_dict().get("views")))
               
   
-              if inserting:
-                  counter += 1
+
                   
                   
-                  if(spec['noDuplicates'] == 'v2'):
-                    if str(j) in Save[i]:
-                        MTextEmb = Save[i][str(j)]['emb']
-                        closest = Save[i][str(j)]['closest']
-                        getClosestUpd(MTextEmb, prevEmb, closest)
-                        Save[i][str(j)]['closest'] = closest
-                    else:
+              if(spec['noDuplicates'] == 'v2'):
+                if str(j) in Save[i]:
+                    MTextEmb = Save[i][str(j)]['emb']
+                    
+                    
+                    closest = Save[i][str(j)]['closest']
+                    getClosestUpd(MTextEmb['vec'], prevEmb, closest)
+                    Save[i][str(j)]['closest'] = closest
+                else:
+                    sss = getMsgFromCl(entity.username, msgId, cl)
+                    if sss == None:
                         MTextEmb = SWass.Text2SimpleVecPP(MTextPT)
-                        if MTextEmb != None:
-                            Save[i][str(j)] = {}
-                            Save[i][str(j)]['emb'] = MTextEmb
-                            closest = getClosest(MTextEmb['vec'], prevEmb)
-                            Save[i][str(j)]['closest'] = closest
+                    else:
+                        MTextEmb = {}
+                        MTextEmb['vec'] = sss['emb']
+                        MTextEmb['num'] = sss['embNum']
+                        
+                    if MTextEmb != None:
+                        Save[i][str(j)] = {}
+                        Save[i][str(j)]['emb'] = MTextEmb
+                        
+                        Save[i][str(j)]['from_chat_id'] = entity.username
+                        Save[i][str(j)]['message_id'] = msgId
+                        Save[i][str(j)]['text'] = MTextPT
+                        Save[i][str(j)]['postTimeTS'] = MsgInCurChannel.to_dict().get("date").timestamp()
+                        Save[i][str(j)]['views'] = MsgInCurChannel.to_dict().get("views")
+                        Save[i][str(j)]['embNum'] = MTextEmb['num']
+                        Save[i][str(j)]['Secs'] = (StartTime - MsgInCurChannel.to_dict().get("date")).total_seconds() 
+                        
+                        closest = getClosest(MTextEmb['vec'], prevEmb)
+                        Save[i][str(j)]['closest'] = closest
+                            
+              if inserting:
+                  counter += 1               
+                  if(spec['noDuplicates'] == 'v2'):
                     if MTextEmb != None:
                     
                         msgtime = MsgInCurChannel.to_dict().get("date")
@@ -498,6 +533,7 @@ def grabTheTop(spec, ChInfoList, cl):
                      candidate['MText'] = MText
                      if(spec['noDuplicates'] == 'v2'):
                         candidate['vec'] = MTextEmb['vec']
+                        candidate['num'] = MTextEmb['num']
            
           top.append(candidate['top'])     
           entitiesTop.append(candidate['entitiesTop'])
@@ -507,7 +543,9 @@ def grabTheTop(spec, ChInfoList, cl):
           prevIn.append(candidate['MText'])
           prevInChan.append(str(candidate['entitiesTop'].username))
           if(spec['noDuplicates'] == 'v2'):
-            prevEmb.append(candidate['vec'])            
+            prevEmb.append(candidate['vec']) 
+            EmbsTop.append(candidate['vec'])
+            EmbsNumTop.append(candidate['num'])
       
       num2show = spec['numTotal']
       
@@ -536,6 +574,9 @@ def grabTheTop(spec, ChInfoList, cl):
             res2[uuu // div]['val']['from_chat_id'] = str(entitiesTop[uuu].username) 
             res2[uuu // div]['val']['message_id'] = msgIdTop[uuu]
             res2[uuu // div]['val']['text'] = str(msg.get("message"))
+            if(spec['noDuplicates'] == 'v2'):
+                res2[uuu // div]['val']['emb'] = EmbsTop[uuu]
+                res2[uuu // div]['val']['embNum'] = EmbsNumTop[uuu]
             if textMsgTop[uuu] is not None:
                   res2[uuu // div]['val']['text'] = str(textMsgTop[uuu].get("message"))
           else:
@@ -574,15 +615,127 @@ def grabTheTop(spec, ChInfoList, cl):
       EndTime = datetime.now(timezone.utc)
       print("EndTime - StartTime = " + str(EndTime - StartTime))
       
-      LoadPrevCl(spec, cl)
-      #for i in range(len(res2)):
-      #  cl['clusters'].append({})
-      #  LLL =  len(cl['clusters'])
-      #  cl['clusters'][LLL - 1]['head'] = {}
-      #  cl['clusters'][LLL - 1]['head']['emb'] = 
-      #  
-      #  cl['clusters'][LLL - 1]['elems'] = []
+      
+      for i in range(len(res2)):
+        cl['clusters'].append({})
+        LLL =  len(cl['clusters'])
+        cl['clusters'][LLL - 1]['head'] = {}
+        cl['clusters'][LLL - 1]['head']['from_chat_id'] = res2[i]['val']['from_chat_id']
+        cl['clusters'][LLL - 1]['head']['message_id'] = res2[i]['val']['message_id'] 
+        cl['clusters'][LLL - 1]['head']['text'] = res2[i]['val']['text']
+        cl['clusters'][LLL - 1]['head']['emb'] = res2[i]['val']['emb']
+        cl['clusters'][LLL - 1]['head']['embNum'] = res2[i]['val']['embNum']
         
+        cl['clusters'][LLL - 1]['elems'] = []
+      
+      #removing stuff from clusters which will not exist anymore 
+      while(len(cl['clusters']) > spec['noDuplicatesNum'] + len(res2)):
+        for i in len(cl['clusters'][0]['elems']):
+            mind2 = float('inf')
+            minInd = -1          
+            elem = cl['clusters'][0]['elems'][i]
+            for k in range(len(cl['clusters']) - (spec['noDuplicatesNum'] + len(res2)), len(cl['clusters'])):
+                dist2 = vDist2(elem['emb'], cl['clusters'][k]['head']['emb'])
+                if dist2 < mind2:
+                    mind2 = dist2
+                    minInd = k 
+            cl['clusters'][minInd]['elems'].append(elem)  
+        cl['clusters'].pop(0)
+      
+      #relocating to the clusters which just appeared news that fit them better than their previous home 
+      for j in range(len(cl['clusters']) - len(res2)):
+            i = 0
+            while i < len(cl['clusters'][j]['elems']):
+                mind2 = float('inf')
+                minInd = -1          
+                elem = cl['clusters'][j]['elems'][i]
+                for t in range(len(cl['clusters']) - len(res2), len(cl['clusters'])):
+                    dist2 = vDist2(elem['emb'], cl['clusters'][t]['head']['emb'])
+                    if dist2 < mind2:
+                        mind2 = dist2
+                        minInd = t   
+                if(mind2 < vDist2(elem['emb'], cl['clusters'][j]['head']['emb'])):
+                    cl['clusters'][minInd]['elems'].append(elem)
+                    cl['clusters'][j]['elems'].pop(i) 
+                else:
+                    i += 1
+                
+      #removing news which are too old
+      for j in range(len(cl['clusters'])): 
+            i = 0
+            while i < len(cl['clusters'][j]['elems']):         
+                elem = cl['clusters'][j]['elems'][i]
+                hoursSinceNews = (StartTime.timestamp()  - elem['postTimeTS']) / 3600
+                if(hoursSinceNews > spec['forLastXhoursInCls']):
+                    cl['clusters'][j]['elems'].pop(i) 
+                else:
+                    i += 1     
+
+                    
+      #adding news that we just got caught to clusters 
+      for i in range(len(Save)):
+        for StrPostNum in Save[i]:
+            Emb = Save[i][StrPostNum]['emb']['vec']
+            mind2 = float('inf')
+            minInd = -1    
+            for k in range(len(cl['clusters'])):
+               dist2 = vDist2(Emb, cl['clusters'][k]['head']['emb'])
+               if dist2 < mind2:
+                   mind2 = dist2
+                   minInd = k
+            elem = {}
+            elem['emb'] = Emb
+            elem['from_chat_id'] = Save[i][StrPostNum]['from_chat_id']
+            elem['message_id'] = Save[i][StrPostNum]['message_id']
+            elem['text'] = Save[i][StrPostNum]['text']
+            elem['postTimeTS'] = Save[i][StrPostNum]['postTimeTS']
+            elem["views"] = Save[i][StrPostNum]['views']
+            elem["embNum"] = Save[i][StrPostNum]['embNum']
+            elem["Secs"] = Save[i][StrPostNum]['Secs']
+            
+            #notIn = True 
+            #
+            #for q in range(len(cl['clusters'])):
+            #    if cl['clusters'][q]['head']['from_chat_id'] == elem['from_chat_id']:
+            #         if cl['clusters'][q]['head']['message_id'] == elem['message_id']:                
+            #            notIn = False
+            #            break
+            #    for j in range(len(cl['clusters'][q]['elems'])):
+            #        if cl['clusters'][q]['elems'][j]['from_chat_id'] == elem['from_chat_id']:
+            #            if cl['clusters'][q]['elems'][j]['message_id'] == elem['message_id']:
+            #                notIn = False
+            #                break
+            
+            if(getMsgFromCl(elem['from_chat_id'], elem['message_id'], cl) == None):
+                cl['clusters'][minInd]['elems'].append(elem)
+                
+      #creating top for each cluster 
+      for j in range(len(cl['clusters'])): 
+        cl['clusters'][j]['top'] = []
+        for zzz in range(spec['clusterSize']):  
+            maxPoints = -1000000
+            maxPointsInd = -1
+            for i in range(len(cl['clusters'][j]['elems'])):
+                elem = cl['clusters'][j]['elems'][i]
+                mind2 = vDist2(elem['emb'], cl['clusters'][j]['head']['emb'])
+                mindk = -1
+                for k in range(len(cl['clusters'][j]['top'])):
+                   topElem = cl['clusters'][j]['top'][k]
+                   dist2 = vDist2(elem['emb'], topElem['emb'])
+                   if dist2 < mind2:
+                     mind2 = dist2
+                     mindk = k
+                curPoints = mind2 * elem["views"] * pow(min(5, elem['embNum']), 0.5) / pow(elem['Secs'] + (5 * 60), 0.7)
+                if curPoints > maxPoints:
+                    maxPoints = curPoints
+                    maxPointsInd = i 
+                    maxPointsmind2 = mind2 
+                    maxPointsmindk = mindk
+            if(maxPoints > 1):       
+                cl['clusters'][j]['elems'][maxPointsInd]['maxPointsmindk'] = maxPointsmindk        
+                cl['clusters'][j]['elems'][maxPointsInd]['maxPointsmind2'] = maxPointsmind2        
+                cl['clusters'][j]['elems'][maxPointsInd]['maxPoints'] = maxPoints        
+                cl['clusters'][j]['top'].append(cl['clusters'][j]['elems'][maxPointsInd])     
           
       return res2  
 
@@ -629,7 +782,7 @@ def add_msg_to_log(elRes, log):
   #print("-------------------------------")
   #print(log['blocks'][len(log['blocks']) - 1]['posts'][0]['dtext'])
   
-def send_msg_on_telegram(msg, type):
+def send_msg_on_telegram(msg, type, cl):
   async def main(phone):
     await client.start()
     print("Client Created")
@@ -646,7 +799,8 @@ def send_msg_on_telegram(msg, type):
     #await client.forward_messages('@OpenNewsAggregatorRUUA', 4, '@vv_volodin') 
     print("send_msg1") 
     
-    racdbnNewsTestGroup = type['dest'] 
+    racdbnNewsTestGroup = type['dest']
+    #racdbnNewsTestGroup = 'racdbn'    
     #if(type == "EN"):
     #  racdbnNewsTestGroup = 'OpenNewsAggregatorEN'
     #if(type == "RU"):  
@@ -669,6 +823,17 @@ def send_msg_on_telegram(msg, type):
         print("racdbnNewsTestGroup = " + str(racdbnNewsTestGroup) + ",msg['val']['message_id'] = " + str(msg['val']['message_id']) + ",msg['val']['from_chat_id'] = " + str(msg['val']['from_chat_id']))
         try:
             await client.forward_messages('@'+racdbnNewsTestGroup, msg['val']['message_id'], '@'+msg['val']['from_chat_id']) 
+            #await client.send_message('@'+racdbnNewsTestGroup, "HERE ARE ALL THE CLUSTERS")
+            #for j in range(len(cl['clusters'])):
+            #    await client.send_message('@'+racdbnNewsTestGroup, "Head j = " + str(j))
+            #    mmm = cl['clusters'][j]['head']
+            #    await client.forward_messages('@'+racdbnNewsTestGroup, mmm['message_id'], '@'+mmm['from_chat_id'])
+            #    await client.send_message('@'+racdbnNewsTestGroup, "TOP j = " + str(j) + ",len(cl['clusters'][j]['top'] = " + str(len(cl['clusters'][j]['top'])))
+            #    for i in range(len(cl['clusters'][j]['top'])):
+            #        mmm = cl['clusters'][j]['top'][i]
+            #        await client.forward_messages('@'+racdbnNewsTestGroup, mmm['message_id'], '@'+mmm['from_chat_id'])
+            #        await client.send_message('@'+racdbnNewsTestGroup, "mmm['maxPoints'] = " + str(mmm['maxPoints']) + ",mmm['maxPointsmind2'] = " + str(mmm['maxPointsmind2']) + ",mmm['maxPointsmindk'] = " + str(mmm['maxPointsmindk']))
+            
         except:
             print("An exception occurred")
         if 'trans2' in type:
@@ -752,7 +917,7 @@ else:
       #res =  grabTheTop("RU",5,"repo")
       #spec = {'type': 'text', 'source': 'SourceRU.json', 'numPerPost': 1, 'numTotal': 5, 'censorLinks': False, 'maxChar': 100000}
       
-      spec = {'type': 'repo', 'source': 'SourceRU.json', 'numTotal': 1, 'noDuplicatesNum': (10 * 5), 'noDuplicatesTresh': 0.7, 'forLastXhours': 6, 'noChannelDuplicatesNum': (7 * 5), 'noDuplicates' : 'v2', 'lastNewsCap': 5, 'trans2': 'ru'}
+      spec = {'type': 'repo', 'source': 'SourceRU.json', 'numTotal': 1, 'noDuplicatesNum': (8 * 5), 'noDuplicatesTresh': 0.7, 'forLastXhours': 6, 'forLastXhoursInCls': 24, 'noChannelDuplicatesNum': (7 * 5), 'noDuplicates' : 'v2', 'lastNewsCap': 1000, 'trans2': 'ru', 'clusterSize': 7}
 
       #res = []
       
@@ -773,7 +938,7 @@ else:
         print("i = " + str(len(res) - i - 1))
         print(res[len(res) - i - 1])
         #send_msg_on_telegram(res[len(res) - i - 1], {'dest': 'OpenNewsAggregatorRUUA', 'trans2': 'ru'})
-        send_msg_on_telegram(res[len(res) - i - 1], {'dest': 'OpenNewsAggregatorRUUA', 'trans2': 'ru'})
+        send_msg_on_telegram(res[len(res) - i - 1], {'dest': 'OpenNewsAggregatorRUUA', 'trans2': 'ru'}, cl)
         add_msg_to_log(res[len(res) - i - 1], log)
       
       with open('logs\\' + log['saveFile'], 'w') as f:
