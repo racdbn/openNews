@@ -27,6 +27,8 @@ import sys
 
 import boto3
 import SWass
+
+from collections.abc import Mapping
  
 
 API_KEY = RacdbnSecrets.API_KEY
@@ -47,10 +49,10 @@ def text2Dict(Text):
             res[sp[i]] = 1
     return res
 
-def totalMass(dict):
+def totalMass(dddd):
     sum = 0
-    for key in dict:  
-        sum += dict[key]
+    for key in dddd:  
+        sum += dddd[key]
     return 1.0 * sum
 
 def statDist(Mu, Nu):
@@ -339,6 +341,26 @@ def grabChInfo(spec):
   with client:
     res = client.loop.run_until_complete(main(phone))
   return res 
+  
+  
+def deleteOldCls(spec):
+    directory = os.fsencode('logs')
+    names = []
+    for file in os.listdir(directory):
+         filename = os.fsdecode(file)
+         if filename.endswith(".txt"):
+             if filename.startswith("CLS-" + spec['source'].rsplit(".",1)[0] + "-"):
+                 print(filename)
+                 names.append(filename)
+             continue
+         else:
+             continue
+             
+    names = sorted(names, key=str.upper) 
+    
+    for i in range(len(names) - 2):
+        print('trying to delete ' + 'logs\\' + names[i])
+        os.remove('logs\\' + names[i])          
 
 def LoadPrevCl(spec, cl):
     directory = os.fsencode('logs')
@@ -441,19 +463,19 @@ def grabTheTop(spec, ChInfoList, cl):
               else:
                 MText = str(MsgInCurChannel.to_dict().get("message"))
                 
-              MTextPT = MText 
+              MTextPT = {'text': MText, 'trans': False} 
               if 'trans2' in spec:
                 if(spec['noDuplicates'] == 'v2'):
                     if str(j) in TextSave[i]:
                         MTextPT = TextSave[i][str(j)]
                     else: 
-                        sourceT = MTextPT
+                        sourceT = MTextPT['text']
                         if(len(sourceT) > 0):
                             try:
                                 clientBoto = boto3.client('translate', region_name="ap-southeast-1")
                                 result = clientBoto.translate_text(Text=sourceT, SourceLanguageCode="auto", TargetLanguageCode = spec['trans2'])        
                                 if result['SourceLanguageCode'] != type['trans2']:
-                                    MTextPT = result['TranslatedText']
+                                    MTextPT = {'text': result['TranslatedText'], 'trans': True} 
                                 TextSave[i][str(j)] = MTextPT
                             except Exception:
                                 pass
@@ -487,7 +509,7 @@ def grabTheTop(spec, ChInfoList, cl):
                 else:
                     sss = getMsgFromCl(entity.username, msgId, cl)
                     if sss == None:
-                        MTextEmb = SWass.Text2SimpleVecPP(MTextPT)
+                        MTextEmb = SWass.Text2SimpleVecPP(MTextPT['text'])
                     else:
                         MTextEmb = {}
                         MTextEmb['vec'] = sss['emb']
@@ -630,7 +652,7 @@ def grabTheTop(spec, ChInfoList, cl):
       
       #removing stuff from clusters which will not exist anymore 
       while(len(cl['clusters']) > spec['noDuplicatesNum'] + len(res2)):
-        for i in len(cl['clusters'][0]['elems']):
+        for i in range(len(cl['clusters'][0]['elems'])):
             mind2 = float('inf')
             minInd = -1          
             elem = cl['clusters'][0]['elems'][i]
@@ -782,7 +804,16 @@ def add_msg_to_log(elRes, log):
   #print("-------------------------------")
   #print(log['blocks'][len(log['blocks']) - 1]['posts'][0]['dtext'])
   
-def send_msg_on_telegram(msg, type, cl):
+def PrintEx(EEE, e, SSS):
+   EEE.write("An exception occurred")
+   EEE.write(str(e))
+   EEE.write(SSS)
+   
+   print("An exception occurred")
+   print(str(e))
+   print(SSS)
+  
+def send_msg_on_telegram(msg, type, cl, EEE):
   async def main(phone):
     await client.start()
     print("Client Created")
@@ -800,6 +831,7 @@ def send_msg_on_telegram(msg, type, cl):
     print("send_msg1") 
     
     racdbnNewsTestGroup = type['dest']
+    racdbnNewsTestGroupBSide = type['destBSide']
     #racdbnNewsTestGroup = 'racdbn'    
     #if(type == "EN"):
     #  racdbnNewsTestGroup = 'OpenNewsAggregatorEN'
@@ -819,39 +851,118 @@ def send_msg_on_telegram(msg, type, cl):
     
     if msg['type'] == 'repo':
      print("send_msg5") 
+     #try:
+     print("racdbnNewsTestGroup = " + str(racdbnNewsTestGroup) + ",msg['val']['message_id'] = " + str(msg['val']['message_id']) + ",msg['val']['from_chat_id'] = " + str(msg['val']['from_chat_id']))
      try:
-        print("racdbnNewsTestGroup = " + str(racdbnNewsTestGroup) + ",msg['val']['message_id'] = " + str(msg['val']['message_id']) + ",msg['val']['from_chat_id'] = " + str(msg['val']['from_chat_id']))
-        try:
-            await client.forward_messages('@'+racdbnNewsTestGroup, msg['val']['message_id'], '@'+msg['val']['from_chat_id']) 
-            #await client.send_message('@'+racdbnNewsTestGroup, "HERE ARE ALL THE CLUSTERS")
-            #for j in range(len(cl['clusters'])):
-            #    await client.send_message('@'+racdbnNewsTestGroup, "Head j = " + str(j))
-            #    mmm = cl['clusters'][j]['head']
-            #    await client.forward_messages('@'+racdbnNewsTestGroup, mmm['message_id'], '@'+mmm['from_chat_id'])
-            #    await client.send_message('@'+racdbnNewsTestGroup, "TOP j = " + str(j) + ",len(cl['clusters'][j]['top'] = " + str(len(cl['clusters'][j]['top'])))
-            #    for i in range(len(cl['clusters'][j]['top'])):
-            #        mmm = cl['clusters'][j]['top'][i]
-            #        await client.forward_messages('@'+racdbnNewsTestGroup, mmm['message_id'], '@'+mmm['from_chat_id'])
-            #        await client.send_message('@'+racdbnNewsTestGroup, "mmm['maxPoints'] = " + str(mmm['maxPoints']) + ",mmm['maxPointsmind2'] = " + str(mmm['maxPointsmind2']) + ",mmm['maxPointsmindk'] = " + str(mmm['maxPointsmindk']))
-            
-        except:
-            print("An exception occurred")
-        if 'trans2' in type:
-            if(len(msg['val']['text']) > 0):
-                sourceT = msg['val']['text']
-                try:
-                    clientBoto = boto3.client('translate', region_name="ap-southeast-1")
-                    result = clientBoto.translate_text(Text=sourceT, SourceLanguageCode="auto", TargetLanguageCode = type['trans2'])        
-                    if result['SourceLanguageCode'] == type['trans2']:
-                        print('Already ' + type['trans2'])    
-                    else:
-                        await client.send_message('@'+racdbnNewsTestGroup, """***Amazon Translate***
-""" + result['TranslatedText'])
-                except Exception:
-                    pass
-                #print('Now')
-     except OSError:
-        telegram_api_url = f"https://api.telegram.org/bot{API_KEY}/sendMessage?chat_id=@{racdbnNewsTestGroup}&text={'fail (privacy?) to load @' + msg['val']['from_chat_id']}"  
+         await client.forward_messages('@'+racdbnNewsTestGroup, msg['val']['message_id'], '@'+msg['val']['from_chat_id']) 
+     except Exception as e: 
+         PrintEx(EEE, e, str(msg['val']['message_id']) + " " + str(msg['val']['from_chat_id']))
+     
+     if 'trans2' in type:
+         if(len(msg['val']['text']) > 0):
+             sourceT = msg['val']['text']
+             try:
+                 clientBoto = boto3.client('translate', region_name="ap-southeast-1")
+                 result = clientBoto.translate_text(Text=sourceT, SourceLanguageCode="auto", TargetLanguageCode = type['trans2'])        
+                 if result['SourceLanguageCode'] == type['trans2']:
+                     print('Already ' + type['trans2'])    
+                 else:
+                     await client.send_message('@'+racdbnNewsTestGroup, """***Amazon Translate***
+""" +result['TranslatedText'])
+             except Exception:
+                 pass       
+
+                 
+     for j in range(len(cl['clusters'])):    
+         time.sleep(8)
+         mmm = cl['clusters'][j]['head']
+         try:
+             await client.forward_messages('@'+racdbnNewsTestGroupBSide, mmm['message_id'], '@'+mmm['from_chat_id'])
+         except Exception as e: 
+             PrintEx(EEE, e, str(mmm['message_id']) + " " + str(mmm['from_chat_id']))
+         try:
+             msg222 = await client.send_message('@'+racdbnNewsTestGroupBSide, "Исходный пост(↑↑↑), есть " + str(len(cl['clusters'][j]['top'])) + " близких по теме ↓↓↓:")
+         except Exception as e: 
+             PrintEx(EEE, e, " ")
+             
+         cl['clusters'][j]['head']['idInBSide'] = msg222.to_dict().get("id")
+         #try:
+         #    await client.send_message('@'+racdbnNewsTestGroupBSide, "id = " + str(cl['clusters'][j]['head']['idInBSide']))
+         #except Exception as e: 
+         #    PrintEx(EEE, e, " ")
+         
+         #try:
+         #    await client.forward_messages('@'+racdbnNewsTestGroupBSide, cl['clusters'][j]['head']['idInBSide'], '@'+racdbnNewsTestGroupBSide)
+         #except Exception as e: 
+         #    PrintEx(EEE, e, "cl['clusters'][j]['head']['idInBSide'] = " + str(cl['clusters'][j]['head']['idInBSide']) + " ," +  racdbnNewsTestGroupBSide)                
+         
+         #try:
+         #    msg222 = await client.send_message('@'+racdbnNewsTestGroupBSide, "Репост(↑↑↑), есть , j = " + str(j))
+         #except Exception as e: 
+         #    PrintEx(EEE, e, " ")                
+         
+         
+         #await client.send_message('@'+racdbnNewsTestGroupBSide, "Исходный пост(↑), Head j = " + str(j))
+         #await client.send_message('@'+racdbnNewsTestGroupBSide, "TOP j = " + str(j) + ",len(cl['clusters'][j]['top'] = " + str(len(cl['clusters'][j]['top'])))
+         for i in range(len(cl['clusters'][j]['top'])):
+             mmm = cl['clusters'][j]['top'][i]
+             try:
+                 await client.forward_messages('@'+racdbnNewsTestGroupBSide, mmm['message_id'], '@'+mmm['from_chat_id'])
+             except Exception as e: 
+                 PrintEx(EEE, e,  str(mmm['message_id']) + " " +  str(mmm['from_chat_id']))                
+             
+             if 'trans2' in type:
+                 if(isinstance(mmm['text'], Mapping)):
+                    if(mmm['text']['trans'] == True):
+                     try:
+                             await client.send_message('@'+racdbnNewsTestGroupBSide, """***Amazon Translate***
+""" +msg['text']['text'])
+                     except Exception:
+                         pass
+                
+             #await client.send_message('@'+racdbnNewsTestGroupBSide, "mmm['maxPoints'] = " + str(mmm['maxPoints']) + ",mmm['maxPointsmind2'] = " + str(mmm['maxPointsmind2']) + ",mmm['maxPointsmindk'] = " + str(mmm['maxPointsmindk']))
+         
+         await client.send_message('@'+racdbnNewsTestGroupBSide, "*** Это все, что у нас есть, из тематически близкого. ***")
+         
+         
+         #await client.send_message('@'+racdbnNewsTestGroupBSide, "______\n \n \n \n \n \n \n \n \n \n ______")
+         for i in {3}:
+             try:
+                #await client.send_message('@'+racdbnNewsTestGroupBSide, 'b' + str(i))
+                await client.forward_messages('@'+racdbnNewsTestGroupBSide, i, '@'+racdbnNewsTestGroupBSide)
+                #await client.send_message('@'+racdbnNewsTestGroupBSide, 'e' + str(i))
+             except Exception as e: 
+                PrintEx(EEE, e,  " ")        
+          
+     
+     lastClHead = cl['clusters'][len(cl['clusters']) - 1]['head']
+     try:
+         EEE.write("Trying to do the linking to B-side")
+         EEE.write("racdbnNewsTestGroup = " + racdbnNewsTestGroup)
+         EEE.write("racdbnNewsTestGroupBSide = " + racdbnNewsTestGroupBSide)
+         EEE.write("str(lastClHead['idInBSide']) = " + str(lastClHead['idInBSide']))
+         msg222 = await client.send_message('@'+racdbnNewsTestGroup, "У нас есть еще " + str(len(cl['clusters'][len(cl['clusters']) - 1]['top'])) + " новостей близких по теме тут: https://t.me/" + racdbnNewsTestGroupBSide + "/" + str(lastClHead['idInBSide']), link_preview=False) 
+     except Exception as e: 
+         PrintEx(EEE, e, " ")
+     cl['clusters'][j]['head']['idInMain'] = msg222.to_dict().get("id")
+     
+     for i in range(len(cl['clusters']) - 1):
+         CLR = cl['clusters'][i]
+         SSS = "У нас есть еще " + str(len(cl['clusters'][i]['top'])) + " новостей близких по теме тут: https://t.me/" + racdbnNewsTestGroupBSide + "/" + str( CLR['head']['idInBSide'])
+         if type['maxClustersNum'] == len(cl['clusters']):
+             if i == 0:
+                 SSS = SSS + " (архив)"
+         try:
+             if 'idInMain' in CLR['head']:
+                 print("trying to edit msg = " + str(CLR['head']['idInMain']))
+                 await client.edit_message('@'+racdbnNewsTestGroup, CLR['head']['idInMain'], SSS, link_preview=False) 
+         except Exception as e: 
+             PrintEx(EEE, e, " ")   
+
+
+             #print('Now')
+     #except OSError:
+     #   telegram_api_url = f"https://api.telegram.org/bot{API_KEY}/sendMessage?chat_id=@{racdbnNewsTestGroup}&text={'fail (privacy?) to load @' + msg['val']['from_chat_id']}"  
      print("send_msg6") 
      #telegram_api_url = f"https://api.telegram.org/bot{API_KEY}/forwardMessage?chat_id=@{racdbnNewsTestGroup}&from_chat_id=@{msg['val']['from_chat_id']}&message_id={msg['val']['message_id']}"
      #tel_resp = requests.get(telegram_api_url)
@@ -900,82 +1011,87 @@ if testing:
     
 else:
     while(True):
-      startTime = datetime.now() 
-      print("t3") 
-      #send_msg_on_telegram("Б", "RU")
-      #send_msg_on_telegram("О", "RU")
-      #send_msg_on_telegram("Г", "RU")
-      #send_msg_on_telegram(" ", "RU")
-      #send_msg_on_telegram("Д", "RU")
-      #send_msg_on_telegram("И", "RU")
-      #send_msg_on_telegram("З", "RU")
-      #send_msg_on_telegram("А", "RU")
-      #send_msg_on_telegram("Й", "RU")
-      #send_msg_on_telegram("Н", "RU")
-      #send_msg_on_telegram("А", "RU") 
-      
-      #res =  grabTheTop("RU",5,"repo")
-      #spec = {'type': 'text', 'source': 'SourceRU.json', 'numPerPost': 1, 'numTotal': 5, 'censorLinks': False, 'maxChar': 100000}
-      
-      spec = {'type': 'repo', 'source': 'SourceRU.json', 'numTotal': 1, 'noDuplicatesNum': (8 * 5), 'noDuplicatesTresh': 0.7, 'forLastXhours': 6, 'forLastXhoursInCls': 24, 'noChannelDuplicatesNum': (7 * 5), 'noDuplicates' : 'v2', 'lastNewsCap': 5, 'trans2': 'ru', 'clusterSize': 7}
-
-      #res = []
-      
       now = datetime.now()
-      FN = spec['source'].rsplit(".",1)[0] + '-[' + str(now).replace(".", "p").replace(":", "d") + '].log' 
-      log = {'saveFile': FN}
-      log['blocks'] = []      
-      
-      clFN = "CLS-" + spec['source'].rsplit(".",1)[0] + '-[' + str(now).replace(".", "p").replace(":", "d") + '].txt' 
-      cl = {'saveFile': clFN}
-      cl['clusters'] = []
-      
-      ChInfoList = grabChInfo(spec)
-      res =  grabTheTop(spec, ChInfoList, cl)
-      
-      for i in range(0, len(res)):
-        print("t4") 
-        print("i = " + str(len(res) - i - 1))
-        print(res[len(res) - i - 1])
-        #send_msg_on_telegram(res[len(res) - i - 1], {'dest': 'OpenNewsAggregatorRUUA', 'trans2': 'ru'})
-        send_msg_on_telegram(res[len(res) - i - 1], {'dest': 'OpenNewsAggregatorRUUA', 'trans2': 'ru'}, cl)
-        add_msg_to_log(res[len(res) - i - 1], log)
-      
-      with open('logs\\' + log['saveFile'], 'w') as f:
-        prettylog = json.dumps(log, indent=4)
-        f.write(prettylog)
-        f.close()      
-        
-      with open('logs\\' + cl['saveFile'], 'w') as f:
-        prettylog = json.dumps(cl, indent=4)
-        f.write(prettylog)
-        f.close()
-      
-      #send_msg_on_telegram({'type': 'text','val': "↑↑↑Топ" + str(spec['numTotal'])  + " новостей телеграма по просмотрам за прошедшие " + str(spec['forLastXhours']) + "ч. " }, {'dest': 'OpenNewsAggregatorRUUA'}) #+ str(datetime.now(timezone.utc)) + "(UTC)."
-        
-      #spec = {'type': 'repo', 'source': 'SourceENG2.json', 'numTotal': 5, 'noDuplicatesNum': 10, 'noDuplicatesTresh': 0.7, 'forLastXhours': 6, 'noChannelDuplicatesNum': 7}
-      #res =  grabTheTop(spec)
-      #
-      #print("t5") 
-      #now = datetime.now()
-      #FN = spec['source'].rsplit(".",1)[0] + '-[' + str(now).replace(".", "p").replace(":", "d") + '].log'
-      #log = {'saveFile': FN}
-      #log['blocks'] = []
-      #for i in range(0, len(res)):
-      #  print("i = " + str(len(res) - i - 1))
-      #  print(res[len(res) - i - 1])
-      #  send_msg_on_telegram(res[len(res) - i - 1], {'dest': 'OpenNewsAggregatorEN'})
-      #  add_msg_to_log(res[len(res) - i - 1], log)
-      #
-      #with open('logs\\' + log['saveFile'], 'w') as f:
-      #  prettylog = json.dumps(log, indent=4)
-      #  f.write(prettylog)
-      #  f.close()
-      #  
-      #send_msg_on_telegram({'type': 'text','val': "↑↑↑Top" + str(spec['numTotal']) + " telegram news posts by views for the last " + str(spec['forLastXhours']) + "h. " }, {'dest': 'OpenNewsAggregatorEN'}) #+ str(datetime.now(timezone.utc)) + "(UTC)."
-      #print("git test22222")
-      endTime = datetime.now()
-      
+      with open('Exceptions\\Exc-[' + str(now).replace(".", "p").replace(":", "d") + ']' + '.txt', 'w') as EEE:   
+          startTime = datetime.now() 
+          print("t3") 
+          #send_msg_on_telegram("Б", "RU")
+          #send_msg_on_telegram("О", "RU")
+          #send_msg_on_telegram("Г", "RU")
+          #send_msg_on_telegram(" ", "RU")
+          #send_msg_on_telegram("Д", "RU")
+          #send_msg_on_telegram("И", "RU")
+          #send_msg_on_telegram("З", "RU")
+          #send_msg_on_telegram("А", "RU")
+          #send_msg_on_telegram("Й", "RU")
+          #send_msg_on_telegram("Н", "RU")
+          #send_msg_on_telegram("А", "RU") 
+          
+          #res =  grabTheTop("RU",5,"repo")
+          #spec = {'type': 'text', 'source': 'SourceRU.json', 'numPerPost': 1, 'numTotal': 5, 'censorLinks': False, 'maxChar': 100000}
+          
+          spec = {'type': 'repo', 'source': 'SourceRU.json', 'numTotal': 1, 'noDuplicatesNum': (8 * 5), 'noDuplicatesTresh': 0.7, 'forLastXhours': 6, 'forLastXhoursInCls': 24, 'noChannelDuplicatesNum': (7 * 5), 'noDuplicates' : 'v2', 'lastNewsCap': 5, 'trans2': 'ru', 'clusterSize': 7}
+
+          #res = []
+          
+          now = datetime.now()
+          FN = spec['source'].rsplit(".",1)[0] + '-[' + str(now).replace(".", "p").replace(":", "d") + '].log' 
+          log = {'saveFile': FN}
+          log['blocks'] = []      
+          
+          clFN = "CLS-" + spec['source'].rsplit(".",1)[0] + '-[' + str(now).replace(".", "p").replace(":", "d") + '].txt' 
+          cl = {'saveFile': clFN}
+          cl['clusters'] = []
+          
+          ChInfoList = grabChInfo(spec)
+          res =  grabTheTop(spec, ChInfoList, cl)
+          
+          for i in range(0, len(res)):
+            print("t4") 
+            print("i = " + str(len(res) - i - 1))
+            print(res[len(res) - i - 1])
+            #send_msg_on_telegram(res[len(res) - i - 1], {'dest': 'OpenNewsAggregatorRUUA', 'trans2': 'ru'})
+            send_msg_on_telegram(res[len(res) - i - 1], {'dest': 'OpenNewsAggregatorRUUA', 'destBSide': 'OpenNewsAggregatorRUUA_BSides', 'trans2': 'ru', 'maxClustersNum': (spec['numTotal'] + spec['noDuplicatesNum'])}, cl, EEE)
+            add_msg_to_log(res[len(res) - i - 1], log)
+          
+          with open('logs\\' + log['saveFile'], 'w') as f:
+            prettylog = json.dumps(log, indent=4)
+            f.write(prettylog)
+            f.close()      
+            
+          with open('logs\\' + cl['saveFile'], 'w') as f:
+            prettylog = json.dumps(cl, indent=4)
+            f.write(prettylog)
+            f.close()
+            
+          deleteOldCls(spec)  
+          
+          #send_msg_on_telegram({'type': 'text','val': "↑↑↑Топ" + str(spec['numTotal'])  + " новостей телеграма по просмотрам за прошедшие " + str(spec['forLastXhours']) + "ч. " }, {'dest': 'OpenNewsAggregatorRUUA'}) #+ str(datetime.now(timezone.utc)) + "(UTC)."
+            
+          #spec = {'type': 'repo', 'source': 'SourceENG2.json', 'numTotal': 5, 'noDuplicatesNum': 10, 'noDuplicatesTresh': 0.7, 'forLastXhours': 6, 'noChannelDuplicatesNum': 7}
+          #res =  grabTheTop(spec)
+          #
+          #print("t5") 
+          #now = datetime.now()
+          #FN = spec['source'].rsplit(".",1)[0] + '-[' + str(now).replace(".", "p").replace(":", "d") + '].log'
+          #log = {'saveFile': FN}
+          #log['blocks'] = []
+          #for i in range(0, len(res)):
+          #  print("i = " + str(len(res) - i - 1))
+          #  print(res[len(res) - i - 1])
+          #  send_msg_on_telegram(res[len(res) - i - 1], {'dest': 'OpenNewsAggregatorEN'})
+          #  add_msg_to_log(res[len(res) - i - 1], log)
+          #
+          #with open('logs\\' + log['saveFile'], 'w') as f:
+          #  prettylog = json.dumps(log, indent=4)
+          #  f.write(prettylog)
+          #  f.close()
+          #  
+          #send_msg_on_telegram({'type': 'text','val': "↑↑↑Top" + str(spec['numTotal']) + " telegram news posts by views for the last " + str(spec['forLastXhours']) + "h. " }, {'dest': 'OpenNewsAggregatorEN'}) #+ str(datetime.now(timezone.utc)) + "(UTC)."
+          #print("git test22222")
+          endTime = datetime.now()
+          EEE.close()
+          
       www = (3600 * 3 * 0.2) - (endTime - startTime).total_seconds()
       if(www > 0):
-        time.sleep(www + 180)
+         time.sleep(www + 180)
