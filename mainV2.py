@@ -463,7 +463,7 @@ def grabTheTop(spec, ChInfoList, cl):
               else:
                 MText = str(MsgInCurChannel.to_dict().get("message"))
                 
-              MTextPT = {'text': MText, 'trans': False} 
+              MTextPT = {'text': MText, 'trans': False, 'ATR': 'None'} 
               if 'trans2' in spec:
                 if(spec['noDuplicates'] == 'v2'):
                     if str(j) in TextSave[i]:
@@ -475,7 +475,7 @@ def grabTheTop(spec, ChInfoList, cl):
                                 clientBoto = boto3.client('translate', region_name="ap-southeast-1")
                                 result = clientBoto.translate_text(Text=sourceT, SourceLanguageCode="auto", TargetLanguageCode = spec['trans2'])        
                                 if result['SourceLanguageCode'] != type['trans2']:
-                                    MTextPT = {'text': result['TranslatedText'], 'trans': True} 
+                                    MTextPT = {'text': result['TranslatedText'], 'trans': True, 'ATR': result['SourceLanguageCode'] + '->' + type['trans2']} 
                                 TextSave[i][str(j)] = MTextPT
                             except Exception:
                                 pass
@@ -904,7 +904,13 @@ def send_msg_on_telegram(msg, type, cl, EEE):
 """ +mmm['text']['text'])
                      except Exception as e:
                          PrintEx(EEE, e, "Amazon Translate ")
-                
+                     if 'ATR' in mmm['text']: 
+                         try:    
+                            await client.send_message('@'+racdbnNewsTestGroupBSide + "TT", mmm['text']['ATR'])
+                         except Exception as e:
+                            PrintEx(EEE, e, "ATR")
+
+ 
              await client.send_message('@'+racdbnNewsTestGroupBSide + "TT", "TextMM = " + str(TextMM) + ",mmm['maxPoints'] = " + str(mmm['maxPoints']) + ",mmm['maxPointsmind2'] = " + str(mmm['maxPointsmind2']) + ",mmm['maxPointsmindk'] = " + str(mmm['maxPointsmindk']) + ", str(mmm['from_chat_id']) = " + str(mmm['from_chat_id']) + ",str(mmm['message_id']) = " + str(mmm['message_id']))
          
          await client.send_message('@'+racdbnNewsTestGroupBSide, "*** Это все, что у нас есть, из тематически близкого. ***")
