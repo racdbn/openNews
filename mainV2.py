@@ -897,7 +897,7 @@ def send_msg_on_telegram(msg, type, cl, EEE):
              TextMM = mmm['text']
              if 'trans2' in type:
                  if(isinstance(mmm['text'], Mapping)):
-                    TextMM = mmm['text'][text]
+                    TextMM = mmm['text']['text']
                     if(mmm['text']['trans'] == True):
                      try:
                              await client.send_message('@'+racdbnNewsTestGroupBSide, """***Amazon Translate***
