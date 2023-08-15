@@ -753,7 +753,7 @@ def grabTheTop(spec, ChInfoList, cl):
                     maxPointsInd = i 
                     maxPointsmind2 = mind2 
                     maxPointsmindk = mindk
-            if(maxPoints > 1):       
+            if(maxPoints > 1000):       
                 cl['clusters'][j]['elems'][maxPointsInd]['maxPointsmindk'] = maxPointsmindk        
                 cl['clusters'][j]['elems'][maxPointsInd]['maxPointsmind2'] = maxPointsmind2        
                 cl['clusters'][j]['elems'][maxPointsInd]['maxPoints'] = maxPoints        
@@ -832,7 +832,8 @@ def send_msg_on_telegram(msg, type, cl, EEE):
     
     racdbnNewsTestGroup = type['dest']
     racdbnNewsTestGroupBSide = type['destBSide']
-    #racdbnNewsTestGroup = 'racdbn'    
+    #racdbnNewsTestGroup = 'racdbn'   
+    #racdbnNewsTestGroupBSide = type['destBSide'] + "TT"
     #if(type == "EN"):
     #  racdbnNewsTestGroup = 'OpenNewsAggregatorEN'
     #if(type == "RU"):  
@@ -851,26 +852,8 @@ def send_msg_on_telegram(msg, type, cl, EEE):
     
     if msg['type'] == 'repo':
      print("send_msg5") 
-     #try:
-     print("racdbnNewsTestGroup = " + str(racdbnNewsTestGroup) + ",msg['val']['message_id'] = " + str(msg['val']['message_id']) + ",msg['val']['from_chat_id'] = " + str(msg['val']['from_chat_id']))
-     try:
-         await client.forward_messages('@'+racdbnNewsTestGroup, msg['val']['message_id'], '@'+msg['val']['from_chat_id']) 
-     except Exception as e: 
-         PrintEx(EEE, e, str(msg['val']['message_id']) + " " + str(msg['val']['from_chat_id']))
      
-     if 'trans2' in type:
-         if(len(msg['val']['text']) > 0):
-             sourceT = msg['val']['text']
-             try:
-                 clientBoto = boto3.client('translate', region_name="ap-southeast-1")
-                 result = clientBoto.translate_text(Text=sourceT, SourceLanguageCode="auto", TargetLanguageCode = type['trans2'])        
-                 if result['SourceLanguageCode'] == type['trans2']:
-                     print('Already ' + type['trans2'])    
-                 else:
-                     await client.send_message('@'+racdbnNewsTestGroup, """***Amazon Translate***
-""" +result['TranslatedText'])
-             except Exception:
-                 pass       
+      
 
                  
      for j in range(len(cl['clusters'])):    
@@ -911,16 +894,18 @@ def send_msg_on_telegram(msg, type, cl, EEE):
              except Exception as e: 
                  PrintEx(EEE, e,  str(mmm['message_id']) + " " +  str(mmm['from_chat_id']))                
              
+             TextMM = mmm['text']
              if 'trans2' in type:
                  if(isinstance(mmm['text'], Mapping)):
+                    TextMM = mmm['text'][text]
                     if(mmm['text']['trans'] == True):
                      try:
                              await client.send_message('@'+racdbnNewsTestGroupBSide, """***Amazon Translate***
-""" +msg['text']['text'])
-                     except Exception:
-                         pass
+""" +mmm['text']['text'])
+                     except Exception as e:
+                         PrintEx(EEE, e, "Amazon Translate ")
                 
-             #await client.send_message('@'+racdbnNewsTestGroupBSide, "mmm['maxPoints'] = " + str(mmm['maxPoints']) + ",mmm['maxPointsmind2'] = " + str(mmm['maxPointsmind2']) + ",mmm['maxPointsmindk'] = " + str(mmm['maxPointsmindk']))
+             await client.send_message('@'+racdbnNewsTestGroupBSide + "TT", "TextMM = " + str(TextMM) + ",mmm['maxPoints'] = " + str(mmm['maxPoints']) + ",mmm['maxPointsmind2'] = " + str(mmm['maxPointsmind2']) + ",mmm['maxPointsmindk'] = " + str(mmm['maxPointsmindk']) + ", str(mmm['from_chat_id']) = " + str(mmm['from_chat_id']) + ",str(mmm['message_id']) = " + str(mmm['message_id']))
          
          await client.send_message('@'+racdbnNewsTestGroupBSide, "*** Это все, что у нас есть, из тематически близкого. ***")
          
@@ -933,7 +918,26 @@ def send_msg_on_telegram(msg, type, cl, EEE):
                 #await client.send_message('@'+racdbnNewsTestGroupBSide, 'e' + str(i))
              except Exception as e: 
                 PrintEx(EEE, e,  " ")        
-          
+
+     print("racdbnNewsTestGroup = " + str(racdbnNewsTestGroup) + ",msg['val']['message_id'] = " + str(msg['val']['message_id']) + ",msg['val']['from_chat_id'] = " + str(msg['val']['from_chat_id']))
+     try:
+         await client.forward_messages('@'+racdbnNewsTestGroup, msg['val']['message_id'], '@'+msg['val']['from_chat_id']) 
+     except Exception as e: 
+         PrintEx(EEE, e, str(msg['val']['message_id']) + " " + str(msg['val']['from_chat_id']))
+     
+     if 'trans2' in type:
+         if(len(msg['val']['text']) > 0):
+             sourceT = msg['val']['text']
+             try:
+                 clientBoto = boto3.client('translate', region_name="ap-southeast-1")
+                 result = clientBoto.translate_text(Text=sourceT, SourceLanguageCode="auto", TargetLanguageCode = type['trans2'])        
+                 if result['SourceLanguageCode'] == type['trans2']:
+                     print('Already ' + type['trans2'])    
+                 else:
+                     await client.send_message('@'+racdbnNewsTestGroup, """***Amazon Translate***
+""" +result['TranslatedText'])
+             except Exception:
+                 pass           
      
      lastClHead = cl['clusters'][len(cl['clusters']) - 1]['head']
      try:
