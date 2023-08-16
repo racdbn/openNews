@@ -812,9 +812,9 @@ def add_msg_to_log(elRes, log):
   #print(log['blocks'][len(log['blocks']) - 1]['posts'][0]['dtext'])
   
 def PrintEx(EEE, e, SSS):
-   EEE.write("An exception occurred")
-   EEE.write(str(e))
-   EEE.write(SSS)
+   EEE.write("An exception occurred" + "\n")
+   EEE.write(str(e) + "\n")
+   EEE.write(SSS + "\n")
    
    print("An exception occurred")
    print(str(e))
