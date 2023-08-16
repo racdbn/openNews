@@ -747,7 +747,7 @@ def grabTheTop(spec, ChInfoList, cl):
                    if dist2 < mind2:
                      mind2 = dist2
                      mindk = k
-                curPoints = mind2 * elem["views"] * pow(min(5, elem['embNum']), 0.5) / pow(elem['Secs'] + (5 * 60), 0.7)
+                curPoints = mind2 * elem["views"] * pow(min(5, elem['embNum']), 0.5) / pow(elem['Secs'] + (25 * 60), 0.5)
                 if curPoints > maxPoints:
                     maxPoints = curPoints
                     maxPointsInd = i 
@@ -857,7 +857,7 @@ def send_msg_on_telegram(msg, type, cl, EEE):
 
                  
      for j in range(len(cl['clusters'])):    
-         time.sleep(8)
+         time.sleep(16)
          mmm = cl['clusters'][j]['head']
          try:
              await client.forward_messages('@'+racdbnNewsTestGroupBSide, mmm['message_id'], '@'+mmm['from_chat_id'])
