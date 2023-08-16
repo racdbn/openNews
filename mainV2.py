@@ -387,14 +387,21 @@ def LoadPrevCl(spec, cl):
  
 
 
+def Intersects(Arr, Brr):
+    for i in range(len(Arr)):
+        for j in range(len(Brr)):
+            if Arr[i] == Brr[j]:
+                return True
+    return False
+
 def getMsgFromCl(chatId, messageId, cl):
     for q in range(len(cl['clusters'])):
         if cl['clusters'][q]['head']['from_chat_id'] == chatId:
-             if cl['clusters'][q]['head']['message_id'] == messageId:                
+             if Intersects(cl['clusters'][q]['head']['message_id'], messageId):                
                 return cl['clusters'][q]['head']
         for j in range(len(cl['clusters'][q]['elems'])):
             if cl['clusters'][q]['elems'][j]['from_chat_id'] == chatId:
-                if cl['clusters'][q]['elems'][j]['message_id'] == messageId:
+                if Intersects(cl['clusters'][q]['elems'][j]['message_id'], messageId):
                      return cl['clusters'][q]['elems'][j]
     
     return None 
@@ -477,8 +484,8 @@ def grabTheTop(spec, ChInfoList, cl):
                                 if result['SourceLanguageCode'] != type['trans2']:
                                     MTextPT = {'text': result['TranslatedText'], 'trans': True, 'ATR': result['SourceLanguageCode'] + '->' + type['trans2']} 
                                 TextSave[i][str(j)] = MTextPT
-                            except Exception:
-                                pass
+                            except Exception as e: 
+                                 PrintEx(EEE, e, " GT for related posts")
                         
                 
               inserting = True   
@@ -904,14 +911,14 @@ def send_msg_on_telegram(msg, type, cl, EEE):
 """ +mmm['text']['text'])
                      except Exception as e:
                          PrintEx(EEE, e, "Amazon Translate ")
-                     if 'ATR' in mmm['text']: 
-                         try:    
-                            await client.send_message('@'+racdbnNewsTestGroupBSide + "TT", mmm['text']['ATR'])
-                         except Exception as e:
-                            PrintEx(EEE, e, "ATR")
+                     #if 'ATR' in mmm['text']: 
+                     #    try:    
+                     #       await client.send_message('@'+racdbnNewsTestGroupBSide + "TT", mmm['text']['ATR'])
+                     #    except Exception as e:
+                     #       PrintEx(EEE, e, "ATR")
 
  
-             await client.send_message('@'+racdbnNewsTestGroupBSide + "TT", "TextMM = " + str(TextMM) + ",mmm['maxPoints'] = " + str(mmm['maxPoints']) + ",mmm['maxPointsmind2'] = " + str(mmm['maxPointsmind2']) + ",mmm['maxPointsmindk'] = " + str(mmm['maxPointsmindk']) + ", str(mmm['from_chat_id']) = " + str(mmm['from_chat_id']) + ",str(mmm['message_id']) = " + str(mmm['message_id']))
+             await client.send_message('@'+racdbnNewsTestGroupBSide + "TT", "TextMM = " + str(TextMM) + ",mmm['maxPoints'] = " + str(mmm['maxPoints']) + ",mmm['maxPointsmind2'] = " + str(mmm['maxPointsmind2']) + ",mmm['maxPointsmindk'] = " + str(mmm['maxPointsmindk']) + ", str(mmm['from_chat_id']) = " + str(mmm['from_chat_id']) + ",str(mmm['message_id']) = " + str(mmm['message_id']) + ", mmm['text'] = " + str(mmm['text']))
          
          await client.send_message('@'+racdbnNewsTestGroupBSide, "*** Это все, что у нас есть, из тематически близкого. ***")
          
