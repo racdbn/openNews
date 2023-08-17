@@ -482,7 +482,7 @@ def grabTheTop(spec, ChInfoList, cl):
                                 clientBoto = boto3.client('translate', region_name="ap-southeast-1")
                                 result = clientBoto.translate_text(Text=sourceT, SourceLanguageCode="auto", TargetLanguageCode = spec['trans2'])        
                                 if result['SourceLanguageCode'] != type['trans2']:
-                                    MTextPT = {'text': result['TranslatedText'], 'trans': True, 'ATR': result['SourceLanguageCode'] + '->' + type['trans2']} 
+                                    MTextPT = {'text': result['TranslatedText'], 'trans': True, 'ATR': str(result['SourceLanguageCode']) + '->' + str(type['trans2'])} 
                                 TextSave[i][str(j)] = MTextPT
                             except Exception as e: 
                                  PrintEx(EEE, e, " GT for related posts")
