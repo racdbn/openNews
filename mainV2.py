@@ -864,7 +864,7 @@ def send_msg_on_telegram(msg, type, cl, EEE):
 
                  
      for j in range(len(cl['clusters'])):    
-         time.sleep(16)
+         time.sleep(32)
          mmm = cl['clusters'][j]['head']
          try:
              await client.forward_messages('@'+racdbnNewsTestGroupBSide, mmm['message_id'], '@'+mmm['from_chat_id'])
@@ -917,8 +917,8 @@ def send_msg_on_telegram(msg, type, cl, EEE):
                      #    except Exception as e:
                      #       PrintEx(EEE, e, "ATR")
 
- 
-             await client.send_message('@'+racdbnNewsTestGroupBSide + "TT", "TextMM = " + str(TextMM) + ",mmm['maxPoints'] = " + str(mmm['maxPoints']) + ",mmm['maxPointsmind2'] = " + str(mmm['maxPointsmind2']) + ",mmm['maxPointsmindk'] = " + str(mmm['maxPointsmindk']) + ", str(mmm['from_chat_id']) = " + str(mmm['from_chat_id']) + ",str(mmm['message_id']) = " + str(mmm['message_id']) + ", mmm['text'] = " + str(mmm['text']))
+             if j >  len(cl['clusters']) - 3:
+                await client.send_message('@'+racdbnNewsTestGroupBSide + "TT", "TextMM = " + str(TextMM) + ",mmm['maxPoints'] = " + str(mmm['maxPoints']) + ",mmm['maxPointsmind2'] = " + str(mmm['maxPointsmind2']) + ",mmm['maxPointsmindk'] = " + str(mmm['maxPointsmindk']) + ", str(mmm['from_chat_id']) = " + str(mmm['from_chat_id']) + ",str(mmm['message_id']) = " + str(mmm['message_id']) + ", mmm['text'] = " + str(mmm['text']))
          
          await client.send_message('@'+racdbnNewsTestGroupBSide, "*** Это все, что у нас есть, из тематически близкого. ***")
          
