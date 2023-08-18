@@ -141,7 +141,7 @@ def getPrevEmb(spec):
                             sourceT = postText
                             clientBoto = boto3.client('translate', region_name="ap-southeast-1")
                             result = clientBoto.translate_text(Text=sourceT, SourceLanguageCode="auto", TargetLanguageCode = spec['trans2'])        
-                            if result['SourceLanguageCode'] != type['trans2']:
+                            if result['SourceLanguageCode'] != spec['trans2']:
                                 postText = result['TranslatedText']
                         except Exception:
                             pass
@@ -487,7 +487,7 @@ def grabTheTop(spec, ChInfoList, cl):
                                 TextSave[i][str(j)] = MTextPT
                             except Exception as e: 
                                  PrintEx(EEE, e, " GT for related posts")
-                        
+              TextSave[i][str(j)]['ATR'] = TextSave[i][str(j)]['ATR'] + ",trans2 in spec = " + str('trans2' in spec) + ",str(j) in TextSave[i] = " + str(str(j) in TextSave[i]) + ",spec['noDuplicates'] == 'v2' = " + str(spec['noDuplicates'] == 'v2') + ",len(sourceT) > 0 = " + str(len(sourceT) > 0)       
                 
               inserting = True   
               
