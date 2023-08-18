@@ -476,8 +476,8 @@ def grabTheTop(spec, ChInfoList, cl):
                     if str(j) in TextSave[i]:
                         MTextPT = TextSave[i][str(j)]
                     else: 
-                        sourceT = MTextPT['text']
-                        if(len(sourceT) > 0):
+                            sourceT = MTextPT['text']
+                            #if(len(sourceT) > 0):
                             try:
                                 clientBoto = boto3.client('translate', region_name="ap-southeast-1")
                                 result = clientBoto.translate_text(Text=sourceT, SourceLanguageCode="auto", TargetLanguageCode = spec['trans2'])        
