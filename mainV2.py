@@ -487,6 +487,8 @@ def grabTheTop(spec, ChInfoList, cl):
                                 TextSave[i][str(j)] = MTextPT
                             except Exception as e: 
                                  PrintEx(EEE, e, " GT for related posts")
+                                 MTextPT['ATR']  = "ECPT:[" + str(e) +"]"
+                                 TextSave[i][str(j)] = MTextPT
                         else:
                             MTextPT = {'text': '', 'trans': False, 'ATR': 'ZeroText'}
                             TextSave[i][str(j)] = MTextPT
