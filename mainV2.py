@@ -476,8 +476,8 @@ def grabTheTop(spec, ChInfoList, cl):
                     if str(j) in TextSave[i]:
                         MTextPT = TextSave[i][str(j)]
                     else: 
-                            sourceT = MTextPT['text']
-                            #if(len(sourceT) > 0):
+                        sourceT = MTextPT['text']
+                        if(len(sourceT) > 0):
                             try:
                                 clientBoto = boto3.client('translate', region_name="ap-southeast-1")
                                 result = clientBoto.translate_text(Text=sourceT, SourceLanguageCode="auto", TargetLanguageCode = spec['trans2'])        
@@ -487,6 +487,10 @@ def grabTheTop(spec, ChInfoList, cl):
                                 TextSave[i][str(j)] = MTextPT
                             except Exception as e: 
                                  PrintEx(EEE, e, " GT for related posts")
+                        else:
+                            MTextPT = {'text': '', 'trans': False, 'ATR': 'ZeroText'}
+                            TextSave[i][str(j)] = MTextPT
+                            
               TextSave[i][str(j)]['ATR'] = TextSave[i][str(j)]['ATR'] + ",trans2 in spec = " + str('trans2' in spec)
               TextSave[i][str(j)]['ATR'] = TextSave[i][str(j)]['ATR'] + ",str(j) in TextSave[i] = " + str(str(j) in TextSave[i]) 
               TextSave[i][str(j)]['ATR'] = TextSave[i][str(j)]['ATR'] + ",spec[noDuplicates] == v2 = " + str(spec['noDuplicates'] == 'v2') 
