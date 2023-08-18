@@ -487,7 +487,10 @@ def grabTheTop(spec, ChInfoList, cl):
                                 TextSave[i][str(j)] = MTextPT
                             except Exception as e: 
                                  PrintEx(EEE, e, " GT for related posts")
-              TextSave[i][str(j)]['ATR'] = TextSave[i][str(j)]['ATR'] + ",trans2 in spec = " + str('trans2' in spec) + ",str(j) in TextSave[i] = " + str(str(j) in TextSave[i]) + ",spec['noDuplicates'] == 'v2' = " + str(spec['noDuplicates'] == 'v2') + ",len(sourceT) > 0 = " + str(len(sourceT) > 0)       
+              TextSave[i][str(j)]['ATR'] = TextSave[i][str(j)]['ATR'] + ",trans2 in spec = " + str('trans2' in spec)
+              TextSave[i][str(j)]['ATR'] = TextSave[i][str(j)]['ATR'] + ",str(j) in TextSave[i] = " + str(str(j) in TextSave[i]) 
+              TextSave[i][str(j)]['ATR'] = TextSave[i][str(j)]['ATR'] + ",spec[noDuplicates] == v2 = " + str(spec['noDuplicates'] == 'v2') 
+              TextSave[i][str(j)]['ATR'] = TextSave[i][str(j)]['ATR'] + ",len(sourceT) > 0 = " + str(len(sourceT) > 0)       
                 
               inserting = True   
               
