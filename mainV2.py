@@ -596,6 +596,7 @@ def grabTheTop(spec, ChInfoList, cl, idf):
            
             entity = ChInfoList[i]['entity']
             all_messages = ChInfoList[i]['all_messages']
+            print("i = " + str(i) + ",len(all_messages) = " + str(len(all_messages)))
             for j in range(0, min(len(all_messages), spec['lastNewsCap'])): 
               print("i = " + str(i) + ",len(ChInfoList) = " + str(len(ChInfoList)) + ",j = " + str(j) + ",len(all_messages) = " + str(len(all_messages)))
               MsgInCurChannel = all_messages[j]
@@ -1092,8 +1093,10 @@ def send_msg_on_telegram(msg, type, cl, EEE):
                      #       PrintEx(EEE, e, "ATR")
 
              if j >  len(cl['clusters']) - 3:
-                await client.send_message('@'+racdbnNewsTestGroupBSide + "TT", "TextMM = " + str(TextMM) + ",mmm['maxPoints'] = " + str(mmm['maxPoints']) + ",mmm['maxPointsmind2'] = " + str(mmm['maxPointsmind2']) + ",mmm['maxPointsmindk'] = " + str(mmm['maxPointsmindk']) + ", str(mmm['from_chat_id']) = " + str(mmm['from_chat_id']) + ",str(mmm['message_id']) = " + str(mmm['message_id']) + ", mmm['text'] = " + str(mmm['text']) + ", mmm['totalW'] = " + str(mmm['totalW']))
-         
+                SSS = "TextMM = " + str(TextMM) + ",mmm['maxPoints'] = " + str(mmm['maxPoints']) + ",mmm['maxPointsmind2'] = " + str(mmm['maxPointsmind2']) + ",mmm['maxPointsmindk'] = " + str(mmm['maxPointsmindk']) + ", str(mmm['from_chat_id']) = " + str(mmm['from_chat_id']) + ",str(mmm['message_id']) = " + str(mmm['message_id']) + ", mmm['text'] = " + str(mmm['text']) 
+                if 'totalW' in mmm:
+                    SSS = SSS + ", mmm['totalW'] = " + str(mmm['totalW'])
+                await client.send_message('@'+racdbnNewsTestGroupBSide + "TT", SSS)
          await client.send_message('@'+racdbnNewsTestGroupBSide, "*** Это все, что у нас есть, из тематически близкого. ***")
          
          
