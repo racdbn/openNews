@@ -679,7 +679,7 @@ def grabTheTop(spec, ChInfoList, cl, idf):
                 else:
                     sss = getMsgFromCl(entity.username, msgId, cl)
                     if sss == None:
-                        SWass.UpdateIDF(idf, entity.username, msgId, MTextPT['text'])
+                        SWass.UpdateIDF(idf, str(entity.username), msgId, MTextPT['text'])
                         MTextEmb = SWass.Text2SimpleVecPP(MTextPT['text'], idf['channels'][str(entity.username)])
                     else:
                         MTextEmb = {}
