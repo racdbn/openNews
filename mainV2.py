@@ -684,7 +684,10 @@ def grabTheTop(spec, ChInfoList, cl, idf):
                         MTextEmb = {}
                         MTextEmb['vec'] = sss['emb']
                         MTextEmb['num'] = sss['embNum']
-                        MTextEmb['totalW'] = sss['totalW']
+                        if 'totalW' in sss:
+                            MTextEmb['totalW'] = sss['totalW']
+                        else:
+                            MTextEmb['totalW'] = -1
                         
                     if MTextEmb != None:
                         Save[i][str(j)] = {}
