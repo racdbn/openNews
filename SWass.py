@@ -16,6 +16,12 @@ import numpy as np
 import nltk
 from nltk.corpus import stopwords
 
+from string import punctuation #сборник символов пунктуации
+from nltk.tokenize import word_tokenize #для токенизации по словам
+from nltk.corpus import stopwords #сборник стоп-слов
+import pymorphy2 #для морфологическтого анализа текста
+from nltk.probability import FreqDist #используется для кодирования «частотных распределений»
+
 #def textDist(Text1, Text2):
 #    nuMeasure1 = Text2WVecs(Text1, {'и': 100}, navec)
 #    nuMeasure2 = Text2WVecs(Text2, {'и': 100}, navec)
@@ -222,6 +228,59 @@ def get2MeansTree(nuMeasure, curNode, prec):
         get2MeansTree(nuMeasure, left, prec) 
         get2MeansTree(nuMeasure, right, prec) 
 
+def Intersects(Arr, Brr):
+    for i in range(len(Arr)):
+        for j in range(len(Brr)):
+            if Arr[i] == Brr[j]:
+                return True
+    return False
+
+def add2IDF(msgId, wordsAsKeys, IDF): 
+    alreadyIn = False 
+    for i in range(len(IDF['postsIds'])):
+        if Intersects(msgId, IDF['postsIds'][i]):
+            alreadyIn = True
+            break
+
+    if alreadyIn:
+        return
+    
+    IDF['postsIds'].append(msgId)
+    for ww in wordsAsKeys:
+        if ww not in IDF['words']:
+            IDF['words'][ww] = {'num': 0}
+        IDF['words'][ww]['num'] += 1
+        FFF = len(IDF['postsIds']) / IDF['words'][ww]['num']
+        IDF['words'][ww]['idf'] = math.log(FFF) 
+  
+def UpdateIDF(idf, entityUsername, msgId, Text): 
+  morph = pymorphy2.MorphAnalyzer()
+  
+  if(str(entityUsername) not in idf['channels']):
+    idf['channels'][str(entityUsername)] = {'postsIds': [], 'words': {}}
+  
+
+  www = Text.split()  
+  
+  russian_stopwords = stopwords.words("russian")
+  
+  resSet = {}
+  for www in Text.split():
+      ttt = www
+      ttt = re.sub(r'\W+', '', ttt)
+      ttt = re.sub('[0-9]', '', ttt)
+      ttt = re.sub('[a-z]', '', ttt)
+      ttt = re.sub('[A-Z]', '', ttt)
+      ttt = ttt.lower()
+      
+      rrr = morph.parse(ttt)[0].normal_form 
+      if rrr not in russian_stopwords:
+          if(rrr in navec):
+             resSet[rrr] = {}
+  
+  if(len(resSet) > 0):
+    add2IDF(msgId, resSet, idf['channels'][str(entityUsername)])
+  
 
 def Text2WVecs(Text, wordsCounts, navec):
     res = []
@@ -231,6 +290,7 @@ def Text2WVecs(Text, wordsCounts, navec):
     
     russian_stopwords = stopwords.words("russian")
     
+ 
     for www in Text.split():
         ttt = www
         ttt = re.sub(r'\W+', '', ttt)
@@ -253,11 +313,44 @@ def Text2WVecs(Text, wordsCounts, navec):
     
     for rrr in res:
         rrr['weight'] = rrr['weight'] / totalWeight
-        #print(rrr['word'] + " " + str(rrr['weight']) + " " + str(rrr['vec'][0]) + " " + str(rrr['vec'][1]) + " " + str(rrr['vec'][2]) + " " + str(rrr['vec'][3]) + "..." ) 
-    
-    #print(res)
-    
+        
     return res
+    
+def Text2WVecsIDF(Text, idf):    
+    res = {'meas': [], 'totalW': 0.0}
+    www = Text.split()
+    
+    totalWeight = 0
+    
+    russian_stopwords = stopwords.words("russian")
+    morph = pymorphy2.MorphAnalyzer()
+    
+    for uuu in Text.split():
+        ttt = uuu
+        ttt = re.sub(r'\W+', '', ttt)
+        ttt = re.sub('[0-9]', '', ttt)
+        ttt = re.sub('[a-z]', '', ttt)
+        ttt = re.sub('[A-Z]', '', ttt)
+        ttt = ttt.lower()
+        
+        rrr = morph.parse(ttt)[0].normal_form 
+        if rrr not in russian_stopwords:
+            if(rrr in navec):
+              www = {}
+              www['count'] = 1.0 
+              www['word'] = rrr
+              www['vec'] = navec[rrr]
+              www['weight'] = www['count'] * idf['words'][rrr]['idf']   
+              totalWeight += www['weight']
+              if www['weight'] > 0.000001:
+                res['meas'].append(www)
+    
+    res['totalW'] = totalWeight
+    if totalWeight > 0.000001:
+        for ggg in res['meas']:
+            ggg['weight'] = ggg['weight'] / totalWeight  
+    
+    return res    
 
 #def Text2Tree(Text):
 #    nuMeasure = Text2WVecs(Text, {'и': 100}, navec)
@@ -289,26 +382,40 @@ def Text2WVecs(Text, wordsCounts, navec):
 #    
 #    return uniMeas
     
-def Text2SimpleVecPP(Text):  
-    nuMeasure = Text2WVecs(Text, {'и': 100}, navec)
+def Text2SimpleVecPP(Text, idf):  
+    rrr = Text2WVecsIDF(Text, idf)
+    nuMeasure = rrr['meas']
     
     res = {}
     
     
     if len(nuMeasure) == 0:
+        return None    
+    if rrr['totalW'] < 0.000001:
         return None
     else:
-        res['vec'] = Text2SimpleVec(Text)
+        res['vec'] = Text2SimpleVec(Text, idf)
         res['num'] = len(nuMeasure)
+        res['totalW'] = rrr['totalW']
     return res    
         
    
   
-def Text2SimpleVec(Text):
-    nuMeasure = Text2WVecs(Text, {'и': 100}, navec)
-    
-    if len(nuMeasure) == 0:
-        return None
+def Text2SimpleVec(Text, idf):
+    if(idf == None):
+        nuMeasure = Text2WVecs(Text, {'и': 100}, navec)
+          
+        if len(nuMeasure) == 0:
+            return None    
+       
+    else:
+        rrr = Text2WVecsIDF(Text, idf)
+        nuMeasure = rrr['meas']
+        
+        if len(nuMeasure) == 0:
+            return None    
+        if rrr['totalW'] < 0.000001:
+            return None
     
     startNode = {'inds':[]}
     for i in range(len(nuMeasure)):

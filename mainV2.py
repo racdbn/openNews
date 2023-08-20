@@ -29,6 +29,8 @@ import boto3
 import SWass
 
 from collections.abc import Mapping
+
+
  
 
 API_KEY = RacdbnSecrets.API_KEY
@@ -107,9 +109,20 @@ def isDuplicate(MText, spec, newTexts, tresh):
                 if statDist(MDict, PDict) < tresh:
                     return True
     return False 
-    
-    
-def getPrevEmb(spec):   
+
+
+def getPrevIdf(idf):
+    try:
+        with open(idf['saveFile'], 'r') as myfile:
+            data = myfile.read()         
+            log = json.loads(data)
+            idf['channels'] = log['channels']
+    except Exception:
+        pass   
+        
+        
+        
+def getPrevEmb(spec, idf):   
     res = []
     directory = os.fsencode('logs')
     names = []
@@ -134,6 +147,7 @@ def getPrevEmb(spec):
         for j in range(len(log['blocks'])):    
             for k in range(len(log['blocks'][j]['posts'])):
                 postText = log['blocks'][j]['posts'][k]['text']
+                ch = log['blocks'][j]['posts'][k]['channelName']
                 
                 if 'trans2' in spec:
                     if(len(postText) > 0):
@@ -145,8 +159,12 @@ def getPrevEmb(spec):
                                 postText = result['TranslatedText']
                         except Exception:
                             pass
-                                    
-                vec = SWass.Text2SimpleVec(postText)
+                if('message_id' in log['blocks'][j]['posts'][k]):
+                    msgId = log['blocks'][j]['posts'][k]['message_id']
+                    SWass.UpdateIDF(idf, ch, msgId, postText)
+                    vec = SWass.Text2SimpleVec(postText, idf['channels'][ch])
+                else:
+                    vec = SWass.Text2SimpleVec(postText, None)
                 if vec != None:
                     res.append(vec)
     return res 
@@ -342,6 +360,139 @@ def grabChInfo(spec):
     res = client.loop.run_until_complete(main(phone))
   return res 
   
+
+      
+
+#def grabChInfoIDF(spec, idf):
+#  print("t3.3") 
+#
+#  res = []
+#  async def main(phone):
+#      
+#      
+#      print("t3.2") 
+#      
+#      await client.start()
+#      print("Client Created")
+#
+#      if await client.is_user_authorized() == False:
+#          await client.send_code_request(phone)
+#          try:
+#              await client.sign_in(phone, input('Enter the code: '))
+#          except SessionPasswordNeededError:
+#              await client.sign_in(password=input('Password: '))
+#  
+#      me = await client.get_me()
+#    
+#      print("---------Channels---------------")
+#
+#      Channels = []
+#
+#      entities = []
+#
+#      with open(spec['source']) as f:
+#          entities = (json.load(f)).get("channels")     
+#    
+#      async for dialog in client.iter_dialogs():
+#          if dialog.is_channel:
+#              print(f'{dialog.id}:{dialog.title}')  
+#              foundInList = False
+#              for ent in entities:
+#                if str(dialog.entity.username).lower() in ent.lower():
+#                  foundInList = True
+#              if foundInList:
+#                Channels.append(dialog)
+#              else:
+#                print("can't find " + str(dialog.entity.username))
+#
+#       
+#      print("---------END Channels---------------")
+#    
+#
+#   
+#   
+#      now = datetime.now(timezone.utc)
+#      print("now = " + str(now))  
+#   
+#      ChInfoList = []
+#      for i in range(0, len(Channels)):  
+#          ChInfo = {} 
+#      
+#          dialog = Channels[i]
+#          entity = dialog.entity
+#          ChInfo['entity'] = entity
+#          
+#          print("start " + str(entity.username))
+#          my_channel = dialog        
+#          
+#          maxViewsInCurChannel = -1
+#          
+#  
+#          offset_id = 0
+#          limit = 10
+#          all_messages = []
+#          total_messages = 0
+#          total_count_limit = 100
+#          
+#          gettinOld = False
+#          
+#          if(str(entity.username) not in idf['channels'])
+#            idf['channels'][str(entity.username)] = {'postsIds': {}, 'words': {}}
+#  
+#          while True:
+#              print("Current Offset ID is:", offset_id, "; Total Messages:", total_messages)
+#              history = await client(GetHistoryRequest(
+#                  peer=my_channel,
+#                  offset_id=offset_id,
+#                  offset_date=None,
+#                  add_offset=0,
+#                  limit=limit,
+#                  max_id=0,
+#                  min_id=0,
+#                  hash=0
+#              ))
+#              if not history.messages:
+#                  break
+#              messages = history.messages
+#              for message in messages:
+#                  
+#                  msgtime = message.to_dict().get("date")
+#                  print("now - msgtime = " + str(now - msgtime))
+#                  if (now - msgtime).total_seconds() > (spec['forLastXhours'] * 3600): 
+#                      gettinOld = True
+#                         
+#                  if not gettingOld:  
+#                      all_messages.append(message)    
+#                      if isinstance(message.to_dict().get("views"), int):
+#                          if message.to_dict().get("views") > maxViewsInCurChannel:
+#                              maxMsgInCurChannel = message
+#                  
+#                  if(message.to_dict().get("message"))
+#                  
+#                 
+#              if gettinOld == True:
+#                if len(idf['channels'][str(entity.username)]['postsIds']) > spec['minIDFPosts']:
+#                  break
+#              
+#              offset_id = messages[len(messages) - 1].id
+#              total_messages = len(all_messages)
+#              if total_count_limit != 0 and total_messages >= total_count_limit: 
+#                if len(idf['channels'][str(entity.username)]['postsIds']) > spec['minIDFPosts']:
+#                  break
+#           
+#          ChInfo['all_messages'] = all_messages
+#          ChInfo['maxMsgInCurChannel'] = maxMsgInCurChannel
+#          if maxMsgInCurChannel.to_dict().get("views") > 0:
+#            ChInfoList.append(ChInfo) 
+#      
+#
+#      
+#      return ChInfoList
+#
+#  with client:
+#    res = client.loop.run_until_complete(main(phone))
+#  return res 
+  
   
 def deleteOldCls(spec):
     directory = os.fsencode('logs')
@@ -406,7 +557,7 @@ def getMsgFromCl(chatId, messageId, cl):
     
     return None 
 
-def grabTheTop(spec, ChInfoList, cl):
+def grabTheTop(spec, ChInfoList, cl, idf):
       res2 = []
 
       top = []
@@ -415,6 +566,7 @@ def grabTheTop(spec, ChInfoList, cl):
       msgIdTop = []
       EmbsTop = []
       EmbsNumTop = []
+      EmbstotalWTop = []
       
       prevIn = []
       prevInChan = []
@@ -423,7 +575,7 @@ def grabTheTop(spec, ChInfoList, cl):
       counter = 0
       prevEmb = []
       print("Go:getPrevEmb")
-      prevEmb = getPrevEmb(spec)
+      prevEmb = getPrevEmb(spec, idf)
       print("End:getPrevEmb")
       
       StartTime = datetime.now(timezone.utc)
@@ -526,11 +678,13 @@ def grabTheTop(spec, ChInfoList, cl):
                 else:
                     sss = getMsgFromCl(entity.username, msgId, cl)
                     if sss == None:
-                        MTextEmb = SWass.Text2SimpleVecPP(MTextPT['text'])
+                        SWass.UpdateIDF(idf, entity.username, msgId, MTextPT['text'])
+                        MTextEmb = SWass.Text2SimpleVecPP(MTextPT['text'], idf['channels'][str(entity.username)])
                     else:
                         MTextEmb = {}
                         MTextEmb['vec'] = sss['emb']
                         MTextEmb['num'] = sss['embNum']
+                        MTextEmb['totalW'] = sss['totalW']
                         
                     if MTextEmb != None:
                         Save[i][str(j)] = {}
@@ -542,6 +696,7 @@ def grabTheTop(spec, ChInfoList, cl):
                         Save[i][str(j)]['postTimeTS'] = MsgInCurChannel.to_dict().get("date").timestamp()
                         Save[i][str(j)]['views'] = MsgInCurChannel.to_dict().get("views")
                         Save[i][str(j)]['embNum'] = MTextEmb['num']
+                        Save[i][str(j)]['totalW'] = MTextEmb['totalW']
                         Save[i][str(j)]['Secs'] = (StartTime - MsgInCurChannel.to_dict().get("date")).total_seconds() 
                         
                         closest = getClosest(MTextEmb['vec'], prevEmb)
@@ -573,6 +728,7 @@ def grabTheTop(spec, ChInfoList, cl):
                      if(spec['noDuplicates'] == 'v2'):
                         candidate['vec'] = MTextEmb['vec']
                         candidate['num'] = MTextEmb['num']
+                        candidate['totalW'] = MTextEmb['totalW']
            
           top.append(candidate['top'])     
           entitiesTop.append(candidate['entitiesTop'])
@@ -585,6 +741,7 @@ def grabTheTop(spec, ChInfoList, cl):
             prevEmb.append(candidate['vec']) 
             EmbsTop.append(candidate['vec'])
             EmbsNumTop.append(candidate['num'])
+            EmbstotalWTop.append(candidate['totalW'])
       
       num2show = spec['numTotal']
       
@@ -616,6 +773,7 @@ def grabTheTop(spec, ChInfoList, cl):
             if(spec['noDuplicates'] == 'v2'):
                 res2[uuu // div]['val']['emb'] = EmbsTop[uuu]
                 res2[uuu // div]['val']['embNum'] = EmbsNumTop[uuu]
+                res2[uuu // div]['val']['totalW'] = EmbstotalWTop[uuu]
             if textMsgTop[uuu] is not None:
                   res2[uuu // div]['val']['text'] = str(textMsgTop[uuu].get("message"))
           else:
@@ -664,6 +822,7 @@ def grabTheTop(spec, ChInfoList, cl):
         cl['clusters'][LLL - 1]['head']['text'] = res2[i]['val']['text']
         cl['clusters'][LLL - 1]['head']['emb'] = res2[i]['val']['emb']
         cl['clusters'][LLL - 1]['head']['embNum'] = res2[i]['val']['embNum']
+        cl['clusters'][LLL - 1]['head']['totalW'] = res2[i]['val']['totalW']
         
         cl['clusters'][LLL - 1]['elems'] = []
       
@@ -730,6 +889,7 @@ def grabTheTop(spec, ChInfoList, cl):
             elem['postTimeTS'] = Save[i][StrPostNum]['postTimeTS']
             elem["views"] = Save[i][StrPostNum]['views']
             elem["embNum"] = Save[i][StrPostNum]['embNum']
+            elem["totalW"] = Save[i][StrPostNum]['totalW']
             elem["Secs"] = Save[i][StrPostNum]['Secs']
             
             #notIn = True 
@@ -816,6 +976,7 @@ def add_msg_to_log(elRes, log):
   log['blocks'][len(log['blocks']) - 1]['posts'].append({})
   log['blocks'][len(log['blocks']) - 1]['posts'][0]['text'] = elRes['val']['text']
   log['blocks'][len(log['blocks']) - 1]['posts'][0]['channelName'] = elRes['val']['from_chat_id']
+  log['blocks'][len(log['blocks']) - 1]['posts'][0]['message_id'] = elRes['val']['message_id']
   #log['blocks'][len(log['blocks']) - 1]['posts'][0]['dtext'] = (elRes['val']['text']).encode('utf-8', 'replace').decode()
   #print(log['blocks'][len(log['blocks']) - 1]['posts'][0]['text'])
   #print("-------------------------------")
@@ -928,7 +1089,7 @@ def send_msg_on_telegram(msg, type, cl, EEE):
                      #       PrintEx(EEE, e, "ATR")
 
              if j >  len(cl['clusters']) - 3:
-                await client.send_message('@'+racdbnNewsTestGroupBSide + "TT", "TextMM = " + str(TextMM) + ",mmm['maxPoints'] = " + str(mmm['maxPoints']) + ",mmm['maxPointsmind2'] = " + str(mmm['maxPointsmind2']) + ",mmm['maxPointsmindk'] = " + str(mmm['maxPointsmindk']) + ", str(mmm['from_chat_id']) = " + str(mmm['from_chat_id']) + ",str(mmm['message_id']) = " + str(mmm['message_id']) + ", mmm['text'] = " + str(mmm['text']))
+                await client.send_message('@'+racdbnNewsTestGroupBSide + "TT", "TextMM = " + str(TextMM) + ",mmm['maxPoints'] = " + str(mmm['maxPoints']) + ",mmm['maxPointsmind2'] = " + str(mmm['maxPointsmind2']) + ",mmm['maxPointsmindk'] = " + str(mmm['maxPointsmindk']) + ", str(mmm['from_chat_id']) = " + str(mmm['from_chat_id']) + ",str(mmm['message_id']) = " + str(mmm['message_id']) + ", mmm['text'] = " + str(mmm['text']) + ", mmm['totalW'] = " + str(mmm['totalW']))
          
          await client.send_message('@'+racdbnNewsTestGroupBSide, "*** Это все, что у нас есть, из тематически близкого. ***")
          
@@ -1057,7 +1218,7 @@ else:
           #res =  grabTheTop("RU",5,"repo")
           #spec = {'type': 'text', 'source': 'SourceRU.json', 'numPerPost': 1, 'numTotal': 5, 'censorLinks': False, 'maxChar': 100000}
           
-          spec = {'type': 'repo', 'source': 'SourceRU.json', 'numTotal': 1, 'noDuplicatesNum': (8 * 5), 'noDuplicatesTresh': 0.7, 'forLastXhours': 6, 'forLastXhoursInCls': 24, 'noChannelDuplicatesNum': (7 * 5), 'noDuplicates' : 'v2', 'lastNewsCap': 5, 'trans2': 'ru', 'clusterSize': 7}
+          spec = {'type': 'repo', 'source': 'SourceRU.json', 'numTotal': 1, 'noDuplicatesNum': (8 * 5), 'noDuplicatesTresh': 0.7, 'forLastXhours': 6, 'forLastXhoursInCls': 24, 'noChannelDuplicatesNum': (7 * 5), 'noDuplicates' : 'v2', 'lastNewsCap': 5, 'trans2': 'ru', 'clusterSize': 7, 'minIDFPosts' : 1000}
 
           #res = []
           
@@ -1070,8 +1231,14 @@ else:
           cl = {'saveFile': clFN}
           cl['clusters'] = []
           
+          idfFN = "IDF-" + spec['source'].rsplit(".",1)[0] + ".txt"
+          idf = {'saveFile': idfFN}
+          idf['channels'] = {}
+          getPrevIdf(idf)
+          
+          #ChInfoList = grabChInfo(spec)
           ChInfoList = grabChInfo(spec)
-          res =  grabTheTop(spec, ChInfoList, cl)
+          res =  grabTheTop(spec, ChInfoList, cl, idf)
           
           for i in range(0, len(res)):
             print("t4") 
@@ -1088,6 +1255,11 @@ else:
             
           with open('logs\\' + cl['saveFile'], 'w') as f:
             prettylog = json.dumps(cl, indent=4)
+            f.write(prettylog)
+            f.close()          
+            
+          with open(idf['saveFile'], 'w') as f:
+            prettylog = json.dumps(idf, indent=4)
             f.write(prettylog)
             f.close()
             
