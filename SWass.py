@@ -273,7 +273,7 @@ def UpdateIDF(idf, entityUsername, msgId, Text):
       ttt = re.sub('[A-Z]', '', ttt)
       ttt = ttt.lower()
       
-      rrr = morph.parse(ttt)[0].normal_form 
+      rrr = str(morph.parse(ttt)[0].normal_form) 
       if rrr not in russian_stopwords:
           if(rrr in navec):
              resSet[rrr] = {}
@@ -333,13 +333,17 @@ def Text2WVecsIDF(Text, idf):
         ttt = re.sub('[A-Z]', '', ttt)
         ttt = ttt.lower()
         
-        rrr = morph.parse(ttt)[0].normal_form 
+        rrr = str(morph.parse(ttt)[0].normal_form) 
         if rrr not in russian_stopwords:
             if(rrr in navec):
               www = {}
               www['count'] = 1.0 
               www['word'] = rrr
               www['vec'] = navec[rrr]
+              if rrr not in idf['words']:
+                print("idf['words'] = " + str(idf['words']))
+                print("Text = " + Text)
+                
               www['weight'] = www['count'] * idf['words'][rrr]['idf']   
               totalWeight += www['weight']
               if www['weight'] > 0.000001:
