@@ -1110,7 +1110,10 @@ def send_msg_on_telegram(type, cl, EEE, idf):
                 SSS = SSS + "\n" + SWass.AnnotateTextWithWeights(str(TextMM), idf['channels'][str(mmm['from_chat_id'])])
                 if 'totalW' in mmm:
                     SSS = SSS + ", mmm['totalW'] = " + str(mmm['totalW'])
-                await client.send_message('@'+racdbnNewsTestGroupBSide + "TT", SSS)
+                try:
+                    await client.send_message('@'+racdbnNewsTestGroupBSide + "TT", SSS)
+                except Exception as e: 
+                    PrintEx(EEE, e,  SSS) 
          await client.send_message('@'+racdbnNewsTestGroupBSide, "*** Это все, что у нас есть, из тематически близкого. ***")
          
          
