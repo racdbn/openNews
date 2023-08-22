@@ -570,6 +570,7 @@ def grabTheTop(spec, ChInfoList, cl, idf):
       textMsgTop = []
       msgIdTop = []
       EmbsTop = []
+      TextsTop = []
       EmbsNumTop = []
       EmbstotalWTop = []
       
