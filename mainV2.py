@@ -1111,7 +1111,8 @@ def send_msg_on_telegram(type, cl, EEE, idf):
                 if 'totalW' in mmm:
                     SSS = SSS + ", mmm['totalW'] = " + str(mmm['totalW'])
                 try:
-                    await client.send_message('@'+racdbnNewsTestGroupBSide + "TT", SSS)
+                    #await client.send_message('@'+racdbnNewsTestGroupBSide + "TT", SSS)
+                    EEE.write(SSS + "\n")
                 except Exception as e: 
                     PrintEx(EEE, e,  SSS) 
          await client.send_message('@'+racdbnNewsTestGroupBSide, "*** Это все, что у нас есть, из тематически близкого. ***")
