@@ -396,7 +396,7 @@ def AnnotateTextWithWeights(Text, idf):
     if totalWeight > 0.000001:
         for ggg in res['meas']:
             ggg['weight'] = ggg['weight'] / totalWeight 
-            SSS = SSS + " " + ggg['word'] + "(" + ggg['weight'] + ")"
+            SSS = SSS + " " + ggg['word'] + "(" + str(ggg['weight']) + ")"
     
     return SSS    
 
