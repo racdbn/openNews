@@ -986,7 +986,7 @@ bot.polling()
 """
 
 #res2[uuu // div]['val']['text'] = 
-def add_msg_to_log(elRes, cl):
+def add_msg_to_log(cl, log):
   mmm = cl['clusters'][len(cl['clusters']) - 1]['head']
   log['blocks'].append({})
   log['blocks'][len(log['blocks']) - 1]['posts'] = []
