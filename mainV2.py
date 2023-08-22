@@ -147,18 +147,23 @@ def getPrevEmb(spec, idf):
         for j in range(len(log['blocks'])):    
             for k in range(len(log['blocks'][j]['posts'])):
                 postText = log['blocks'][j]['posts'][k]['text']
+                if(isinstance(postText, Mapping)):
+                    postText = postText['text']
+                
+                
                 ch = log['blocks'][j]['posts'][k]['channelName']
                 
-                if 'trans2' in spec:
-                    if(len(postText) > 0):
-                        try:
-                            sourceT = postText
-                            clientBoto = boto3.client('translate', region_name="ap-southeast-1")
-                            result = clientBoto.translate_text(Text=sourceT, SourceLanguageCode="auto", TargetLanguageCode = spec['trans2'])        
-                            if result['SourceLanguageCode'] != spec['trans2']:
-                                postText = result['TranslatedText']
-                        except Exception:
-                            pass
+                #if 'trans2' in spec:
+                #    if(len(postText) > 0):
+                #        try:
+                #            sourceT = postText
+                #            clientBoto = boto3.client('translate', region_name="ap-southeast-1")
+                #            result = clientBoto.translate_text(Text=sourceT, SourceLanguageCode="auto", TargetLanguageCode = spec['trans2'])        
+                #            if result['SourceLanguageCode'] != spec['trans2']:
+                #                postText = result['TranslatedText']
+                #        except Exception:
+                #            pass
+                            
                 if('message_id' in log['blocks'][j]['posts'][k]):
                     msgId = log['blocks'][j]['posts'][k]['message_id']
                     SWass.UpdateIDF(idf, ch, msgId, postText)
@@ -729,6 +734,7 @@ def grabTheTop(spec, ChInfoList, cl, idf):
                      candidate['textMsgTop'] = textMsg
                      candidate['msgIdTop'] = msgId
                      candidate['MText'] = MText
+                     candidate['text'] = MTextPT
                      if(spec['noDuplicates'] == 'v2'):
                         candidate['vec'] = MTextEmb['vec']
                         candidate['num'] = MTextEmb['num']
@@ -744,6 +750,7 @@ def grabTheTop(spec, ChInfoList, cl, idf):
           if(spec['noDuplicates'] == 'v2'):
             prevEmb.append(candidate['vec']) 
             EmbsTop.append(candidate['vec'])
+            TextsTop.append(candidate['text'])
             EmbsNumTop.append(candidate['num'])
             EmbstotalWTop.append(candidate['totalW'])
       
@@ -773,13 +780,14 @@ def grabTheTop(spec, ChInfoList, cl, idf):
           if spec['type'] == 'repo':  
             res2[uuu // div]['val']['from_chat_id'] = str(entitiesTop[uuu].username) 
             res2[uuu // div]['val']['message_id'] = msgIdTop[uuu]
-            res2[uuu // div]['val']['text'] = str(msg.get("message"))
+            #res2[uuu // div]['val']['text'] = str(msg.get("message"))
+            res2[uuu // div]['val']['text'] = TextsTop[uuu]
             if(spec['noDuplicates'] == 'v2'):
                 res2[uuu // div]['val']['emb'] = EmbsTop[uuu]
                 res2[uuu // div]['val']['embNum'] = EmbsNumTop[uuu]
                 res2[uuu // div]['val']['totalW'] = EmbstotalWTop[uuu]
-            if textMsgTop[uuu] is not None:
-                  res2[uuu // div]['val']['text'] = str(textMsgTop[uuu].get("message"))
+#            if textMsgTop[uuu] is not None:
+#                  res2[uuu // div]['val']['text'] = str(textMsgTop[uuu].get("message"))
           else:
               ent = str(entitiesTop[uuu].username)
               SSS = str(msg.get("message"))
@@ -974,13 +982,14 @@ bot.polling()
 """
 
 #res2[uuu // div]['val']['text'] = 
-def add_msg_to_log(elRes, log):  
+def add_msg_to_log(elRes, cl):
+  mmm = cl['clusters'][len(cl['clusters']) - 1]['head']
   log['blocks'].append({})
   log['blocks'][len(log['blocks']) - 1]['posts'] = []
   log['blocks'][len(log['blocks']) - 1]['posts'].append({})
-  log['blocks'][len(log['blocks']) - 1]['posts'][0]['text'] = elRes['val']['text']
-  log['blocks'][len(log['blocks']) - 1]['posts'][0]['channelName'] = elRes['val']['from_chat_id']
-  log['blocks'][len(log['blocks']) - 1]['posts'][0]['message_id'] = elRes['val']['message_id']
+  log['blocks'][len(log['blocks']) - 1]['posts'][0]['text'] = mmm['text']
+  log['blocks'][len(log['blocks']) - 1]['posts'][0]['channelName'] = mmm['from_chat_id']
+  log['blocks'][len(log['blocks']) - 1]['posts'][0]['message_id'] = mmm['message_id']
   #log['blocks'][len(log['blocks']) - 1]['posts'][0]['dtext'] = (elRes['val']['text']).encode('utf-8', 'replace').decode()
   #print(log['blocks'][len(log['blocks']) - 1]['posts'][0]['text'])
   #print("-------------------------------")
@@ -995,7 +1004,7 @@ def PrintEx(EEE, e, SSS):
    print(str(e))
    print(SSS)
   
-def send_msg_on_telegram(msg, type, cl, EEE):
+def send_msg_on_telegram(type, cl, EEE):
   async def main(phone):
     await client.start()
     print("Client Created")
@@ -1022,17 +1031,17 @@ def send_msg_on_telegram(msg, type, cl, EEE):
     #  racdbnNewsTestGroup = 'OpenNewsAggregatorRUUA'
 
     print("send_msg2") 
-    if msg['type'] == 'text':
-     print("send_msg3") 
-     telegram_api_url = f"https://api.telegram.org/bot{API_KEY}/sendMessage?chat_id=@{racdbnNewsTestGroup}&text={msg['val']}"
-     tel_resp = requests.get(telegram_api_url)
-     if tel_resp.status_code == 200:
-      print ("Notification has been sent on Telegram") 
-     else:
-      print ("Could not send Message " + str(tel_resp.status_code) + str(tel_resp.text))
-     print("send_msg4")  
+    #if msg['type'] == 'text':
+    # print("send_msg3") 
+    # telegram_api_url = f"https://api.telegram.org/bot{API_KEY}/sendMessage?chat_id=@{racdbnNewsTestGroup}&text={msg['val']}"
+    # tel_resp = requests.get(telegram_api_url)
+    # if tel_resp.status_code == 200:
+    #  print ("Notification has been sent on Telegram") 
+    # else:
+    #  print ("Could not send Message " + str(tel_resp.status_code) + str(tel_resp.text))
+    # print("send_msg4")  
     
-    if msg['type'] == 'repo':
+    if True:
      print("send_msg5") 
      
       
@@ -1108,26 +1117,39 @@ def send_msg_on_telegram(msg, type, cl, EEE):
                 #await client.send_message('@'+racdbnNewsTestGroupBSide, 'e' + str(i))
              except Exception as e: 
                 PrintEx(EEE, e,  " ")        
-
-     print("racdbnNewsTestGroup = " + str(racdbnNewsTestGroup) + ",msg['val']['message_id'] = " + str(msg['val']['message_id']) + ",msg['val']['from_chat_id'] = " + str(msg['val']['from_chat_id']))
+    
+     mmm = cl['clusters'][len(cl['clusters']) - 1]['head']
+     #print("racdbnNewsTestGroup = " + str(racdbnNewsTestGroup) + ",msg['val']['message_id'] = " + str(msg['val']['message_id']) + ",msg['val']['from_chat_id'] = " + str(msg['val']['from_chat_id']))
      try:
-         await client.forward_messages('@'+racdbnNewsTestGroup, msg['val']['message_id'], '@'+msg['val']['from_chat_id']) 
+         await client.forward_messages('@'+racdbnNewsTestGroup, mmm['message_id'], '@'+mmm['from_chat_id']) 
      except Exception as e: 
-         PrintEx(EEE, e, str(msg['val']['message_id']) + " " + str(msg['val']['from_chat_id']))
+         PrintEx(EEE, e, str(mmm['message_id']) + " " + str(mmm['from_chat_id']))
      
      if 'trans2' in type:
-         if(len(msg['val']['text']) > 0):
-             sourceT = msg['val']['text']
-             try:
-                 clientBoto = boto3.client('translate', region_name="ap-southeast-1")
-                 result = clientBoto.translate_text(Text=sourceT, SourceLanguageCode="auto", TargetLanguageCode = type['trans2'])        
-                 if result['SourceLanguageCode'] == type['trans2']:
-                     print('Already ' + type['trans2'])    
-                 else:
-                     await client.send_message('@'+racdbnNewsTestGroup, """***Amazon Translate***
-""" +result['TranslatedText'])
-             except Exception:
-                 pass           
+             #mmm = cl['clusters'][len(cl['clusters']) - 1]['head']               
+             
+             TextMM = mmm['text']
+             if 'trans2' in type:
+                 if(isinstance(mmm['text'], Mapping)):
+                    TextMM = mmm['text']['text']
+                    if(mmm['text']['trans'] == True):
+                     try:
+                             await client.send_message('@'+racdbnNewsTestGroup, """***Amazon Translate***
+""" +mmm['text']['text'])
+                     except Exception as e:
+                         PrintEx(EEE, e, "Amazon Translate ")     
+#         if(len(msg['val']['text']) > 0):
+#             sourceT = msg['val']['text']
+#             try:
+#                 clientBoto = boto3.client('translate', region_name="ap-southeast-1")
+#                 result = clientBoto.translate_text(Text=sourceT, SourceLanguageCode="auto", TargetLanguageCode = type['trans2'])        
+#                 if result['SourceLanguageCode'] == type['trans2']:
+#                     print('Already ' + type['trans2'])    
+#                 else:
+#                     await client.send_message('@'+racdbnNewsTestGroup, """***Amazon Translate***
+#""" +result['TranslatedText'])
+#             except Exception:
+#                 pass           
      
      lastClHead = cl['clusters'][len(cl['clusters']) - 1]['head']
      try:
@@ -1224,7 +1246,7 @@ else:
           #res =  grabTheTop("RU",5,"repo")
           #spec = {'type': 'text', 'source': 'SourceRU.json', 'numPerPost': 1, 'numTotal': 5, 'censorLinks': False, 'maxChar': 100000}
           
-          spec = {'type': 'repo', 'source': 'SourceRU.json', 'numTotal': 1, 'noDuplicatesNum': (8 * 5), 'noDuplicatesTresh': 0.7, 'forLastXhours': 6, 'forLastXhoursInCls': 24, 'noChannelDuplicatesNum': (7 * 5), 'noDuplicates' : 'v2', 'lastNewsCap': 5, 'trans2': 'ru', 'clusterSize': 7, 'minIDFPosts' : 1000}
+          spec = {'type': 'repo', 'source': 'SourceRU.json', 'numTotal': 1, 'noDuplicatesNum': (8 * 5), 'noDuplicatesTresh': 0.7, 'forLastXhours': 6, 'forLastXhoursInCls': 24, 'noChannelDuplicatesNum': (7 * 5), 'noDuplicates' : 'v2', 'lastNewsCap': 5, 'trans2': 'ru', 'clusterSize': 25}
 
           #res = []
           
@@ -1248,11 +1270,11 @@ else:
           
           for i in range(0, len(res)):
             print("t4") 
-            print("i = " + str(len(res) - i - 1))
-            print(res[len(res) - i - 1])
+            #print("i = " + str(len(res) - i - 1))
+            #print(res[len(res) - i - 1])
             #send_msg_on_telegram(res[len(res) - i - 1], {'dest': 'OpenNewsAggregatorRUUA', 'trans2': 'ru'})
             send_msg_on_telegram(res[len(res) - i - 1], {'dest': 'OpenNewsAggregatorRUUA', 'destBSide': 'OpenNewsAggregatorRUUA_BSides', 'trans2': 'ru', 'maxClustersNum': (spec['numTotal'] + spec['noDuplicatesNum'])}, cl, EEE)
-            add_msg_to_log(res[len(res) - i - 1], log)
+            add_msg_to_log(cl, log)
           
           with open('logs\\' + log['saveFile'], 'w') as f:
             prettylog = json.dumps(log, indent=4)
