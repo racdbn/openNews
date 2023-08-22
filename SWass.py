@@ -354,7 +354,51 @@ def Text2WVecsIDF(Text, idf):
         for ggg in res['meas']:
             ggg['weight'] = ggg['weight'] / totalWeight  
     
-    return res    
+    return res 
+
+
+def AnnotateTextWithWeights(Text, idf):    
+    res = {'meas': [], 'totalW': 0.0}
+    www = Text.split()
+    
+    totalWeight = 0
+    
+    russian_stopwords = stopwords.words("russian")
+    morph = pymorphy2.MorphAnalyzer()
+    
+    for uuu in Text.split():
+        ttt = uuu
+        ttt = re.sub(r'\W+', '', ttt)
+        ttt = re.sub('[0-9]', '', ttt)
+        ttt = re.sub('[a-z]', '', ttt)
+        ttt = re.sub('[A-Z]', '', ttt)
+        ttt = ttt.lower()
+        
+        rrr = str(morph.parse(ttt)[0].normal_form) 
+        if rrr not in russian_stopwords:
+            if(rrr in navec):
+              www = {}
+              www['count'] = 1.0 
+              www['word'] = rrr
+              www['vec'] = navec[rrr]
+              if rrr not in idf['words']:
+                print("idf['words'] = " + str(idf['words']))
+                print("Text = " + Text)
+                
+              www['weight'] = www['count'] * idf['words'][rrr]['idf']   
+              totalWeight += www['weight']
+              if www['weight'] > 0.000001:
+                res['meas'].append(www)
+    
+    res['totalW'] = totalWeight
+    
+    SSS = ""
+    if totalWeight > 0.000001:
+        for ggg in res['meas']:
+            ggg['weight'] = ggg['weight'] / totalWeight 
+            SSS = SSS + " " + ggg['word'] + "(" + ggg['weight'] + ")"
+    
+    return SSS    
 
 #def Text2Tree(Text):
 #    nuMeasure = Text2WVecs(Text, {'и': 100}, navec)

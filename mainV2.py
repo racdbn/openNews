@@ -656,10 +656,13 @@ def grabTheTop(spec, ChInfoList, cl, idf):
               TextSave[i][str(j)]['ATR'] = TextSave[i][str(j)]['ATR'] + ",spec[noDuplicates] == v2 = " + str(spec['noDuplicates'] == 'v2') 
               TextSave[i][str(j)]['ATR'] = TextSave[i][str(j)]['ATR'] + ",len(sourceT) > 0 = " + str(len(sourceT) > 0)       
                 
-              inserting = True   
-              
+              inserting = True 
+
+                
+              isFromDuplicateChannelWeigth = 1.0
               if isFromDuplicateChannel(str(entity.username), spec, prevInChan):
-                  inserting = False    
+                  #inserting = False    
+                  isFromDuplicateChannelWeigth = 0.5    
 
               if isDuplicate(MText, spec, prevIn, 0.5):
                 inserting = False 
@@ -721,7 +724,7 @@ def grabTheTop(spec, ChInfoList, cl, idf):
                         Secs = (StartTime - msgtime).total_seconds() 
                     
                     
-                        curPoints = (closest['Dist2'] * MsgInCurChannel.to_dict().get("views")) * pow(min(5, MTextEmb['num']), 0.5) / pow(Secs + (5 * 60), 0.7)
+                        curPoints = (closest['Dist2'] * MsgInCurChannel.to_dict().get("views")) * pow(min(5, MTextEmb['num']), 0.5) / pow(Secs + (5 * 60), 0.7) * isFromDuplicateChannelWeigth
                     else: 
                         curPoints = -1000000
                   else:
@@ -1004,7 +1007,7 @@ def PrintEx(EEE, e, SSS):
    print(str(e))
    print(SSS)
   
-def send_msg_on_telegram(type, cl, EEE):
+def send_msg_on_telegram(type, cl, EEE, idf):
   async def main(phone):
     await client.start()
     print("Client Created")
@@ -1103,13 +1106,14 @@ def send_msg_on_telegram(type, cl, EEE):
 
              if j >  len(cl['clusters']) - 3:
                 SSS = "TextMM = " + str(TextMM) + ",mmm['maxPoints'] = " + str(mmm['maxPoints']) + ",mmm['maxPointsmind2'] = " + str(mmm['maxPointsmind2']) + ",mmm['maxPointsmindk'] = " + str(mmm['maxPointsmindk']) + ", str(mmm['from_chat_id']) = " + str(mmm['from_chat_id']) + ",str(mmm['message_id']) = " + str(mmm['message_id']) + ", mmm['text'] = " + str(mmm['text']) 
+                SSS = SSS + "\n" + SWass.AnnotateTextWithWeights(str(TextMM), idf['channels'][str(mmm['from_chat_id'])])
                 if 'totalW' in mmm:
                     SSS = SSS + ", mmm['totalW'] = " + str(mmm['totalW'])
                 await client.send_message('@'+racdbnNewsTestGroupBSide + "TT", SSS)
          await client.send_message('@'+racdbnNewsTestGroupBSide, "*** Это все, что у нас есть, из тематически близкого. ***")
          
          
-         #await client.send_message('@'+racdbnNewsTestGroupBSide, "______\n \n \n \n \n \n \n \n \n \n ______")
+         #await client.send_message('@'+racdbnNewsTestGroupBSide, "______\n \n \n \n \n \n \n \n \n \n ______") #TT
          for i in {3}:
              try:
                 #await client.send_message('@'+racdbnNewsTestGroupBSide, 'b' + str(i))
@@ -1246,7 +1250,7 @@ else:
           #res =  grabTheTop("RU",5,"repo")
           #spec = {'type': 'text', 'source': 'SourceRU.json', 'numPerPost': 1, 'numTotal': 5, 'censorLinks': False, 'maxChar': 100000}
           
-          spec = {'type': 'repo', 'source': 'SourceRU.json', 'numTotal': 1, 'noDuplicatesNum': (8 * 5), 'noDuplicatesTresh': 0.7, 'forLastXhours': 6, 'forLastXhoursInCls': 24, 'noChannelDuplicatesNum': (7 * 5), 'noDuplicates' : 'v2', 'lastNewsCap': 5, 'trans2': 'ru', 'clusterSize': 25}
+          spec = {'type': 'repo', 'source': 'SourceRU.json', 'numTotal': 1, 'noDuplicatesNum': 10, 'noDuplicatesTresh': 0.7, 'forLastXhours': 6, 'forLastXhoursInCls': 12, 'noChannelDuplicatesNum': (7 * 5), 'noDuplicates' : 'v2', 'lastNewsCap': 5, 'trans2': 'ru', 'clusterSize': 25}
 
           #res = []
           
@@ -1273,7 +1277,7 @@ else:
             #print("i = " + str(len(res) - i - 1))
             #print(res[len(res) - i - 1])
             #send_msg_on_telegram(res[len(res) - i - 1], {'dest': 'OpenNewsAggregatorRUUA', 'trans2': 'ru'})
-            send_msg_on_telegram(res[len(res) - i - 1], {'dest': 'OpenNewsAggregatorRUUA', 'destBSide': 'OpenNewsAggregatorRUUA_BSides', 'trans2': 'ru', 'maxClustersNum': (spec['numTotal'] + spec['noDuplicatesNum'])}, cl, EEE)
+            send_msg_on_telegram({'dest': 'OpenNewsAggregatorRUUA', 'destBSide': 'OpenNewsAggregatorRUUA_BSides', 'trans2': 'ru', 'maxClustersNum': (spec['numTotal'] + spec['noDuplicatesNum'])}, cl, EEE, idf)
             add_msg_to_log(cl, log)
           
           with open('logs\\' + log['saveFile'], 'w') as f:
