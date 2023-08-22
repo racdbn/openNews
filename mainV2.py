@@ -1236,7 +1236,7 @@ if testing:
 else:
     while(True):
       now = datetime.now()
-      with open('Exceptions\\Exc-[' + str(now).replace(".", "p").replace(":", "d") + ']' + '.txt', 'w') as EEE:   
+      with open('Exceptions\\Exc-[' + str(now).replace(".", "p").replace(":", "d") + ']' + '.txt', 'w', encoding="utf-8") as EEE:   
           startTime = datetime.now() 
           print("t3") 
           #send_msg_on_telegram("Б", "RU")
