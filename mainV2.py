@@ -637,27 +637,32 @@ def grabTheTop(spec, ChInfoList, cl, idf):
                     if str(j) in TextSave[i]:
                         MTextPT = TextSave[i][str(j)]
                     else: 
-                        sourceT = MTextPT['text']
-                        if(len(sourceT) > 0):
-                            try:
-                                clientBoto = boto3.client('translate', region_name="ap-southeast-1")
-                                result = clientBoto.translate_text(Text=sourceT, SourceLanguageCode="auto", TargetLanguageCode = spec['trans2'])        
-                                if str(result['SourceLanguageCode']) != str(spec['trans2']):
-                                    MTextPT = {'text': result['TranslatedText'], 'trans': True, 'ATR': str(result['SourceLanguageCode']) + '->' + str(spec['trans2'])} 
-                                MTextPT['ATR'] = str(result['SourceLanguageCode']) + '->' + str(spec['trans2'])
-                                TextSave[i][str(j)] = MTextPT
-                            except Exception as e: 
-                                 PrintEx(EEE, e, " GT for related posts")
-                                 MTextPT['ATR']  = "ECPT:[" + str(e) +"]"
-                                 TextSave[i][str(j)] = MTextPT
-                        else:
-                            MTextPT = {'text': '', 'trans': False, 'ATR': 'ZeroText'}
+                        sss = getMsgFromCl(entity.username, msgId, cl)
+                        if sss != None:
+                            MTextPT = sss['text']
                             TextSave[i][str(j)] = MTextPT
+                        else:
+                            sourceT = MTextPT['text']
+                            if(len(sourceT) > 0):
+                                try:
+                                    clientBoto = boto3.client('translate', region_name="ap-southeast-1")
+                                    result = clientBoto.translate_text(Text=sourceT, SourceLanguageCode="auto", TargetLanguageCode = spec['trans2'])        
+                                    if str(result['SourceLanguageCode']) != str(spec['trans2']):
+                                        MTextPT = {'text': result['TranslatedText'], 'trans': True, 'ATR': str(result['SourceLanguageCode']) + '->' + str(spec['trans2'])} 
+                                    MTextPT['ATR'] = str(result['SourceLanguageCode']) + '->' + str(spec['trans2'])
+                                    TextSave[i][str(j)] = MTextPT
+                                except Exception as e: 
+                                     PrintEx(EEE, e, " GT for related posts")
+                                     MTextPT['ATR']  = "ECPT:[" + str(e) +"]"
+                                     TextSave[i][str(j)] = MTextPT
+                            else:
+                                MTextPT = {'text': '', 'trans': False, 'ATR': 'ZeroText'}
+                                TextSave[i][str(j)] = MTextPT
                             
-              TextSave[i][str(j)]['ATR'] = TextSave[i][str(j)]['ATR'] + ",trans2 in spec = " + str('trans2' in spec)
-              TextSave[i][str(j)]['ATR'] = TextSave[i][str(j)]['ATR'] + ",str(j) in TextSave[i] = " + str(str(j) in TextSave[i]) 
-              TextSave[i][str(j)]['ATR'] = TextSave[i][str(j)]['ATR'] + ",spec[noDuplicates] == v2 = " + str(spec['noDuplicates'] == 'v2') 
-              TextSave[i][str(j)]['ATR'] = TextSave[i][str(j)]['ATR'] + ",len(sourceT) > 0 = " + str(len(sourceT) > 0)       
+              #TextSave[i][str(j)]['ATR'] = TextSave[i][str(j)]['ATR'] + ",trans2 in spec = " + str('trans2' in spec)
+              #TextSave[i][str(j)]['ATR'] = TextSave[i][str(j)]['ATR'] + ",str(j) in TextSave[i] = " + str(str(j) in TextSave[i]) 
+              #TextSave[i][str(j)]['ATR'] = TextSave[i][str(j)]['ATR'] + ",spec[noDuplicates] == v2 = " + str(spec['noDuplicates'] == 'v2') 
+              #TextSave[i][str(j)]['ATR'] = TextSave[i][str(j)]['ATR'] + ",len(sourceT) > 0 = " + str(len(sourceT) > 0)       
                 
               inserting = True 
 
