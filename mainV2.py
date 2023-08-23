@@ -727,7 +727,13 @@ def grabTheTop(spec, ChInfoList, cl, idf):
                         Secs = (StartTime - msgtime).total_seconds() 
                     
                     
-                        curPoints = (closest['Dist2'] * MsgInCurChannel.to_dict().get("views")) * pow(min(5, MTextEmb['num']), 0.5) / pow(Secs + (5 * 60), 0.7) * isFromDuplicateChannelWeigth
+                        #curPoints = (closest['Dist2'] * MsgInCurChannel.to_dict().get("views")) * pow(min(5, MTextEmb['num']), 0.5) / pow(Secs + (5 * 60), 0.7) * isFromDuplicateChannelWeigth
+                        
+                        curPoints = closest['Dist2'] * MsgInCurChannel.to_dict().get("views")
+                        #curPoints = curPoints * pow(min(5, MTextEmb['num']), 0.5) 
+                        curPoints = curPoints * pow(min(50, MTextEmb['totalW']), 0.8) 
+                        curPoints = curPoints / pow(Secs + (5 * 60), 0.7) 
+                        curPoints = curPoints * isFromDuplicateChannelWeigth
                     else: 
                         curPoints = -1000000
                   else:
