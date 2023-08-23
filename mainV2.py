@@ -948,7 +948,11 @@ def grabTheTop(spec, ChInfoList, cl, idf):
                    if dist2 < mind2:
                      mind2 = dist2
                      mindk = k
-                curPoints = mind2 * elem["views"] * pow(min(5, elem['embNum']), 0.5) / pow(elem['Secs'] + (25 * 60), 0.5)
+                curPoints = mind2 * elem["views"] 
+                #curPoints = curPoints * pow(min(5, elem['embNum']), 0.5) 
+                #curPoints = curPoints * pow(min(5, elem['embNum']), 0.5) 
+                curPoints = curPoints * pow(min(50, elem['totalW']), 0.8) 
+                curPoints = curPoints / pow(elem['Secs'] + (25 * 60), 0.5)
                 if curPoints > maxPoints:
                     maxPoints = curPoints
                     maxPointsInd = i 
