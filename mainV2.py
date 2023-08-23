@@ -105,6 +105,8 @@ def isDuplicate(MText, spec, newTexts, tresh):
         for j in range(len(log['blocks'])):    
             for k in range(len(log['blocks'][j]['posts'])):
                 postText = log['blocks'][j]['posts'][k]['text']
+                if(isinstance(postText, Mapping)):
+                    postText = postText['text']
                 PDict = text2Dict(postText)
                 if statDist(MDict, PDict) < tresh:
                     return True
