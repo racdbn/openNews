@@ -670,7 +670,7 @@ def grabTheTop(spec, ChInfoList, cl, idf):
               isFromDuplicateChannelWeigth = 1.0
               if isFromDuplicateChannel(str(entity.username), spec, prevInChan):
                   #inserting = False    
-                  isFromDuplicateChannelWeigth = 0.5    
+                  isFromDuplicateChannelWeigth = 0.1    
 
               if isDuplicate(MText, spec, prevIn, 0.5):
                 inserting = False 
