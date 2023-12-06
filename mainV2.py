@@ -31,6 +31,8 @@ import SWass
 from collections.abc import Mapping
 
 
+
+
  
 
 API_KEY = RacdbnSecrets.API_KEY
@@ -1272,7 +1274,9 @@ else:
           #res =  grabTheTop("RU",5,"repo")
           #spec = {'type': 'text', 'source': 'SourceRU.json', 'numPerPost': 1, 'numTotal': 5, 'censorLinks': False, 'maxChar': 100000}
           
-          spec = {'type': 'repo', 'source': 'SourceRU.json', 'numTotal': 1, 'noDuplicatesNum': 10, 'noDuplicatesTresh': 0.7, 'forLastXhours': 6, 'forLastXhoursInCls': 12, 'noChannelDuplicatesNum': (7 * 5), 'noDuplicates' : 'v2', 'lastNewsCap': 5, 'trans2': 'ru', 'clusterSize': 25}
+          #spec = {'type': 'repo', 'source': 'SourceRU.json', 'numTotal': 1, 'noDuplicatesNum': 10, 'noDuplicatesTresh': 0.7, #'forLastXhours': 6, 'forLastXhoursInCls': 12, 'noChannelDuplicatesNum': (7 * 5), 'noDuplicates' : 'v2', 'lastNewsCap': 5, #'trans2': 'ru', 'clusterSize': 25}
+          
+          spec = {'type': 'repo', 'source': 'SourceOnlyRU.json', 'numTotal': 1, 'noDuplicatesNum': 10, 'noDuplicatesTresh': 0.7, 'forLastXhours': 6, 'forLastXhoursInCls': 12, 'noChannelDuplicatesNum': (7 * 5), 'noDuplicates' : 'v2', 'lastNewsCap': 5, 'clusterSize': 25}
 
           #res = []
           
