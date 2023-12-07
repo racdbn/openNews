@@ -281,7 +281,9 @@ def grabChInfo(spec):
               print(f'{dialog.id}:{dialog.title}')  
               foundInList = False
               for ent in entities:
-                if str(dialog.entity.username).lower() in ent.lower():
+                parts = ent.split('/')
+                last = parts[len(parts) - 1]
+                if str(dialog.entity.username).lower() == last.lower():
                   foundInList = True
               if foundInList:
                 Channels.append(dialog)
